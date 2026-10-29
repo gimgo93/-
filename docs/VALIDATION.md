@@ -1,3 +1,5 @@
+> 초기 모아 프로토타입 기록입니다. 현재 sepol의 기능·출처·배포 설명은 [PUBLIC_DATA.md](PUBLIC_DATA.md)를 확인하세요.
+
 # 실행 검증
 
 2026-10-29, Node.js 24.19.0, Wrangler 4.92.0, Chromium 154의 현재 클라우드 인스턴스에서 실행했다.

@@ -1,3 +1,5 @@
+> 초기 모아 프로토타입 기록입니다. 현재 sepol의 기능·출처·배포 설명은 [PUBLIC_DATA.md](PUBLIC_DATA.md)를 확인하세요.
+
 # 독립 앱 배포
 
 이 프로젝트의 저장소는 **gimgo93/-**이고 배포 주소는 **https://ageclan.com/app/**입니다.

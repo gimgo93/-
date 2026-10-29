@@ -1,0 +1,422 @@
+{
+  "경기도 가평군": {
+    "query": "경기도 가평군",
+    "fetchedAt": "2026-10-29T12:19:10.430Z",
+    "result": {
+      "place_id": 221794071,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2409164,
+      "lat": "37.8314000",
+      "lon": "127.5098000",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.48498986659179477,
+      "addresstype": "county",
+      "name": "가평군",
+      "display_name": "가평군, 경기도, 대한민국",
+      "boundingbox": [
+        "37.5717079",
+        "38.0511236",
+        "127.2663183",
+        "127.6171409"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%EA%B0%80%ED%8F%89%EA%B5%B0&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "경기도 안산시 상록구 본오동": {
+    "query": "경기도 안산시 상록구 본오동",
+    "fetchedAt": "2026-10-29T12:19:12.033Z",
+    "result": {
+      "place_id": 220991375,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "node",
+      "osm_id": 4705474242,
+      "lat": "37.2928744",
+      "lon": "126.8668397",
+      "category": "place",
+      "type": "quarter",
+      "place_rank": 20,
+      "importance": 0.13338833524071106,
+      "addresstype": "quarter",
+      "name": "본오동",
+      "display_name": "본오동, 상록구, 안산시, 경기도, 15550, 대한민국",
+      "boundingbox": [
+        "37.2828744",
+        "37.3028744",
+        "126.8568397",
+        "126.8768397"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%EC%95%88%EC%82%B0%EC%8B%9C+%EC%83%81%EB%A1%9D%EA%B5%AC+%EB%B3%B8%EC%98%A4%EB%8F%99&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "양평대교": {
+    "query": "양평대교",
+    "fetchedAt": "2026-10-29T12:19:14.042Z",
+    "result": {
+      "place_id": 222274087,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "way",
+      "osm_id": 1436128717,
+      "lat": "37.5042689",
+      "lon": "127.4524956",
+      "category": "man_made",
+      "type": "bridge",
+      "place_rank": 30,
+      "importance": 0.000040000762951049326,
+      "addresstype": "man_made",
+      "name": "양평대교",
+      "display_name": "양평대교, 중부내륙고속도로, 옥천면, 양평군, 경기도, 12508, 대한민국",
+      "boundingbox": [
+        "37.5001393",
+        "37.5084196",
+        "127.4520221",
+        "127.4529306"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%96%91%ED%8F%89%EB%8C%80%EA%B5%90&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "양근대교": {
+    "query": "양근대교",
+    "fetchedAt": "2026-10-29T12:19:15.634Z",
+    "result": {
+      "place_id": 220080449,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "way",
+      "osm_id": 1436128718,
+      "lat": "37.4927517",
+      "lon": "127.4811688",
+      "category": "man_made",
+      "type": "bridge",
+      "place_rank": 30,
+      "importance": 0.000040000762951049326,
+      "addresstype": "man_made",
+      "name": "양근대교",
+      "display_name": "양근대교, 양강섬안길, 양근리, 양평군, 경기도, 12546, 대한민국",
+      "boundingbox": [
+        "37.4898620",
+        "37.4956382",
+        "127.4786879",
+        "127.4836459"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%96%91%EA%B7%BC%EB%8C%80%EA%B5%90&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "이포대교": {
+    "query": "이포대교",
+    "fetchedAt": "2026-10-29T12:19:17.670Z",
+    "result": {
+      "place_id": 222218058,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "way",
+      "osm_id": 116590186,
+      "lat": "37.4019500",
+      "lon": "127.5409656",
+      "category": "bridge",
+      "type": "yes",
+      "place_rank": 30,
+      "importance": 0.000056877241168795564,
+      "addresstype": "bridge",
+      "name": "이포대교",
+      "display_name": "이포대교, 남한강 자전거길, 천서리, 여주시, 경기도, 12608, 대한민국",
+      "boundingbox": [
+        "37.4008274",
+        "37.4030726",
+        "127.5366734",
+        "127.5452577"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%9D%B4%ED%8F%AC%EB%8C%80%EA%B5%90&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "수원역": {
+    "query": "수원역",
+    "fetchedAt": "2026-10-29T12:19:19.706Z",
+    "result": {
+      "place_id": 428291120,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "way",
+      "osm_id": 316509661,
+      "lat": "37.2655559",
+      "lon": "127.0001841",
+      "category": "building",
+      "type": "train_station",
+      "place_rank": 30,
+      "importance": 0.49824399872943365,
+      "addresstype": "building",
+      "name": "수원역",
+      "display_name": "수원역, 924, 덕영대로, 매산로1가, 팔달구, 수원시, 경기도, 16622, 대한민국",
+      "boundingbox": [
+        "37.2643644",
+        "37.2668643",
+        "126.9988642",
+        "127.0012281"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%88%98%EC%9B%90%EC%97%AD&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "기흥역": {
+    "query": "기흥역",
+    "fetchedAt": "2026-10-29T12:19:21.209Z",
+    "result": {
+      "place_id": 223293417,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "node",
+      "osm_id": 13423619481,
+      "lat": "37.2759717",
+      "lon": "127.1166863",
+      "category": "highway",
+      "type": "bus_stop",
+      "place_rank": 30,
+      "importance": 0.000060943770504265163,
+      "addresstype": "highway",
+      "name": "기흥역",
+      "display_name": "기흥역, 중부대로, 구갈동, 기흥구, 용인시, 경기도, 17064, 대한민국",
+      "boundingbox": [
+        "37.2759217",
+        "37.2760217",
+        "127.1166363",
+        "127.1167363"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B8%B0%ED%9D%A5%EC%97%AD&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "대화역": {
+    "query": "대화역",
+    "fetchedAt": "2026-10-29T12:19:22.709Z",
+    "result": {
+      "place_id": 223667807,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "node",
+      "osm_id": 9019318962,
+      "lat": "37.6762043",
+      "lon": "126.7470741",
+      "category": "highway",
+      "type": "bus_stop",
+      "place_rank": 30,
+      "importance": 0.00006318532082088987,
+      "addresstype": "highway",
+      "name": "대화역",
+      "display_name": "대화역, 중앙로, 대화동, 일산서구, 고양시, 경기도, 10381, 대한민국",
+      "boundingbox": [
+        "37.6761543",
+        "37.6762543",
+        "126.7470241",
+        "126.7471241"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EB%8C%80%ED%99%94%EC%97%AD&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "경기도 시흥시": {
+    "query": "경기도 시흥시",
+    "fetchedAt": "2026-10-29T12:19:24.311Z",
+    "result": {
+      "place_id": 223288101,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2409181,
+      "lat": "37.3798891",
+      "lon": "126.8032255",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.5089865540213813,
+      "addresstype": "city",
+      "name": "시흥시",
+      "display_name": "시흥시, 경기도, 대한민국",
+      "boundingbox": [
+        "37.3025631",
+        "37.4723932",
+        "126.6228963",
+        "126.8823378"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%EC%8B%9C%ED%9D%A5%EC%8B%9C&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "분당서울대학교병원": {
+    "query": "분당서울대학교병원",
+    "fetchedAt": "2026-10-29T12:19:25.702Z",
+    "result": {
+      "place_id": 220047756,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "way",
+      "osm_id": 232198027,
+      "lat": "37.3492691",
+      "lon": "127.1241351",
+      "category": "amenity",
+      "type": "hospital",
+      "place_rank": 30,
+      "importance": 0.3572718937775532,
+      "addresstype": "amenity",
+      "name": "분당서울대학교병원",
+      "display_name": "분당서울대학교병원, 구미로185번길, 구미동, 분당구, 성남시, 경기도, 13622, 대한민국",
+      "boundingbox": [
+        "37.3459538",
+        "37.3526568",
+        "127.1220315",
+        "127.1263176"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EB%B6%84%EB%8B%B9%EC%84%9C%EC%9A%B8%EB%8C%80%ED%95%99%EA%B5%90%EB%B3%91%EC%9B%90&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "경기도 포천시": {
+    "query": "경기도 포천시",
+    "fetchedAt": "2026-10-29T12:19:27.198Z",
+    "result": {
+      "place_id": 222905871,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2409178,
+      "lat": "37.8948267",
+      "lon": "127.2007295",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.504621755206816,
+      "addresstype": "city",
+      "name": "포천시",
+      "display_name": "포천시, 경기도, 대한민국",
+      "boundingbox": [
+        "37.7469676",
+        "38.1883212",
+        "127.0902998",
+        "127.4470757"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%ED%8F%AC%EC%B2%9C%EC%8B%9C&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "연세대학교 백양누리": {
+    "query": "연세대학교 백양누리",
+    "fetchedAt": "2026-10-29T12:19:28.960Z",
+    "result": {
+      "place_id": 223544134,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "node",
+      "osm_id": 12558747826,
+      "lat": "37.5603694",
+      "lon": "126.9366316",
+      "category": "historic",
+      "type": "memorial",
+      "place_rank": 30,
+      "importance": 0.0000729800869763793,
+      "addresstype": "historic",
+      "name": "연세대학교 정문 기념물",
+      "display_name": "연세대학교 정문 기념물, 백양누리 지하 1층 도로, 신촌동, 서대문구, 서울특별시, 03722, 대한민국",
+      "boundingbox": [
+        "37.5603194",
+        "37.5604194",
+        "126.9365816",
+        "126.9366816"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%97%B0%EC%84%B8%EB%8C%80%ED%95%99%EA%B5%90+%EB%B0%B1%EC%96%91%EB%88%84%EB%A6%AC&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "경기도 양평군": {
+    "query": "경기도 양평군",
+    "fetchedAt": "2026-10-29T12:20:39.208Z",
+    "result": {
+      "place_id": 222608532,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2409186,
+      "lat": "37.4916000",
+      "lon": "127.4875000",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.49030230481498827,
+      "addresstype": "county",
+      "name": "양평군",
+      "display_name": "양평군, 경기도, 대한민국",
+      "boundingbox": [
+        "37.3669813",
+        "37.6710350",
+        "127.3059363",
+        "127.8481129"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%EC%96%91%ED%8F%89%EA%B5%B0&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "경기도 여주시": {
+    "query": "경기도 여주시",
+    "fetchedAt": "2026-10-29T12:20:40.547Z",
+    "result": {
+      "place_id": 222851464,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2409187,
+      "lat": "37.2982901",
+      "lon": "127.6370330",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.49856837053739944,
+      "addresstype": "city",
+      "name": "여주시",
+      "display_name": "여주시, 경기도, 대한민국",
+      "boundingbox": [
+        "37.1350555",
+        "37.4395356",
+        "127.3982262",
+        "127.7705563"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EA%B2%BD%EA%B8%B0%EB%8F%84+%EC%97%AC%EC%A3%BC%EC%8B%9C&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  },
+  "서울특별시 서대문구": {
+    "query": "서울특별시 서대문구",
+    "fetchedAt": "2026-10-29T12:20:42.146Z",
+    "result": {
+      "place_id": 223175982,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+      "osm_type": "relation",
+      "osm_id": 2419951,
+      "lat": "37.5790747",
+      "lon": "126.9367861",
+      "category": "boundary",
+      "type": "administrative",
+      "place_rank": 12,
+      "importance": 0.5115837928778677,
+      "addresstype": "borough",
+      "name": "서대문구",
+      "display_name": "서대문구, 서울특별시, 대한민국",
+      "boundingbox": [
+        "37.5551024",
+        "37.6107512",
+        "126.9019475",
+        "126.9694716"
+      ]
+    },
+    "source": "OpenStreetMap Nominatim",
+    "license": "ODbL",
+    "sourceUrl": "https://nominatim.openstreetmap.org/search?q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EC%84%9C%EB%8C%80%EB%AC%B8%EA%B5%AC&format=jsonv2&limit=1&countrycodes=kr&accept-language=ko"
+  }
+}

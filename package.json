@@ -1,6 +1,6 @@
 {
-  "name": "ilgok-independent-app",
-  "version": "0.1.0",
+  "name": "sepol",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,15 +10,20 @@
     "dev": "node scripts/wrangler.mjs dev --local --ip 127.0.0.1 --port 8789 --inspector-port 0 --persist-to .wrangler/state",
     "db:local": "node scripts/wrangler.mjs d1 migrations apply APP_DB --local --persist-to .wrangler/state",
     "test": "node --test",
-    "test:ui": "node scripts/check-ui.mjs",
+    "test:ui": "node scripts/check-sepol-ui.mjs",
     "build": "node scripts/wrangler.mjs deploy --dry-run --outdir .output",
     "icons": "node scripts/build-icons.mjs",
     "db:remote": "node scripts/prepare-deploy.mjs && node scripts/wrangler.mjs d1 migrations apply APP_DB --remote --config .output/wrangler.deploy.json",
-    "deploy": "node scripts/prepare-deploy.mjs && node scripts/wrangler.mjs deploy --config .output/wrangler.deploy.json"
+    "deploy": "node scripts/prepare-deploy.mjs && node scripts/wrangler.mjs deploy --config .output/wrangler.deploy.json",
+    "data:prepare": "node scripts/prepare-catalog.mjs"
   },
   "devDependencies": {
     "lucide-static": "1.63.0",
     "puppeteer-core": "25.16.0",
     "wrangler": "4.92.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "5.11.2",
+    "leaflet": "1.9.4"
   }
 }

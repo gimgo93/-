@@ -1,38 +1,95 @@
 <!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="시민의 의견을 모아 지역 문제의 우선순위를 살피고, 더 공정한 예산 배분을 함께 설계하는 모아입니다.">
-  <meta name="theme-color" content="#f7f9fc">
-  <meta name="robots" content="noindex, nofollow">
-  <title>모아 | 우리 동네의 목소리가 정책으로</title>
-  <link rel="icon" href="/app/icon.svg" type="image/svg+xml">
-  <link rel="preload" href="/app/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/app/moa.css">
-  <script type="module" src="/app/app.js"></script>
-</head>
-<body>
-  <a class="skip-link" href="#workspace">본문으로 건너뛰기</a>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="wordmark" href="/app/" aria-label="모아 현황 홈"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#messages-square"></use></svg></span>모아<span class="brand-description">시민의 목소리가 정책으로</span></a>
-      <div class="header-actions"><button type="button" class="button quiet compact" data-action="guide"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#circle-help"></use></svg><span>이용 안내</span></button><button type="button" class="button primary" data-view="write"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#plus"></use></svg>의견 남기기</button></div>
-    </div>
-    <div class="nav-inner">
-      <nav aria-label="주요 메뉴">
-        <a href="?view=overview" data-view="overview"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#layout-dashboard"></use></svg>우리 동네 현황</a>
-        <a href="?view=opinions" data-view="opinions"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#message-square-text"></use></svg>시민 의견</a>
-        <a href="?view=priority" data-view="priority"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#list-ordered"></use></svg>정책 우선순위</a>
-        <a href="?view=budget" data-view="budget"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#chart-pie"></use></svg>예산 시뮬레이션</a>
-        <a href="?view=report" data-view="report"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#file-chart-column"></use></svg>정책 제안서</a>
-      </nav>
-      <label class="source-control"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#database"></use></svg><span class="visually-hidden">분석 데이터</span><select id="source-select" name="source"><option value="demo">시연 데이터</option><option value="community">시민 접수 의견</option></select></label>
-    </div>
-  </header>
-  <main id="workspace" class="workspace" tabindex="-1"><div class="initial-message"><h1>우리 동네의 목소리를 모으고 있어요.</h1><p>의견과 정책 데이터를 불러오는 중입니다.</p></div></main>
-  <noscript><div class="noscript-note">의견 작성과 시뮬레이션을 이용하려면 브라우저의 JavaScript를 켜 주세요.</div></noscript>
-  <footer class="site-footer"><a href="/app/" class="footer-brand">모아</a><span>작은 목소리까지 담는 시민 참여 정책 실험실</span><button type="button" data-action="method" class="text-button">분석 기준과 데이터 안내</button></footer>
-  <dialog id="info-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button type="button" class="icon-button" data-action="close-dialog" aria-label="안내 닫기"><svg class="icon" aria-hidden="true"><use href="/app/icons.svg#x"></use></svg></button></div><div id="dialog-content"></div></dialog>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="공식 공개자료에서 확인한 정책을 쉽게 읽고, 적용 지역을 지도와 Google Earth에서 살펴보세요."
+    />
+    <meta name="theme-color" content="#f5f8fc" />
+    <title>sepol (search politics) | 동네에서 찾는 정책</title>
+    <link rel="icon" href="/app/icon.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/app/fonts/PretendardVariable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/app/vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/app/policy.css?v=2" />
+    <script src="/app/vendor/leaflet/leaflet.js" defer></script>
+    <script src="/app/policy-app.js?v=2" type="module"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">본문으로 건너뛰기</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="wordmark" href="/app/" aria-label="sepol 정책 홈"
+          ><span class="brand-mark"
+            ><svg class="icon" aria-hidden="true">
+              <use href="/app/icons.svg#map-pin"></use></svg></span
+          >sepol<span class="brand-description"
+            >search politics · 동네에서 찾는 정책</span
+          ></a
+        >
+        <button class="button primary compact" data-view="write">
+          <svg class="icon" aria-hidden="true">
+            <use href="/app/icons.svg#plus"></use></svg
+          >의견 남기기
+        </button>
+      </div>
+      <div class="nav-inner">
+        <nav aria-label="주요 메뉴">
+          <a href="?view=discover" data-view="discover">정책 둘러보기</a>
+          <a href="?view=map" data-view="map">정책 지도</a>
+          <a href="?view=compare" data-view="compare"
+            >비교·검토 <span id="saved-count">0</span></a
+          >
+          <a href="?view=opinions" data-view="opinions">시민 의견</a>
+          <a href="?view=sources" data-view="sources">출처와 가공</a>
+        </nav>
+        <span class="review-stamp"
+          >공식자료 검토 <time id="reviewed-date">확인 중</time></span
+        >
+      </div>
+    </header>
+    <section id="neighborhood-bar" aria-label="우리 동네 설정"></section>
+    <main id="workspace" tabindex="-1">
+      <div class="loading-state" role="status">
+        <h1>정책의 근거를 불러오고 있어요.</h1>
+        <p>공식 발표와 적용 지역을 함께 확인합니다.</p>
+      </div>
+    </main>
+    <noscript
+      ><p class="notice">
+        정책 목록과 지도를 이용하려면 JavaScript를 켜 주세요.
+        <a href="/app/api/policies">공개 정책 JSON 보기</a>
+      </p></noscript
+    >
+    <footer class="site-footer">
+      <strong>sepol</strong
+      ><span>공식 발표를 읽기 쉽게 재구성한 독립 정책 탐색 서비스</span
+      ><a href="?view=sources" data-view="sources">데이터와 지도 기준</a>
+    </footer>
+    <dialog id="policy-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-top">
+        <h2 id="dialog-title"></h2>
+        <button
+          class="icon-button"
+          data-action="close-dialog"
+          aria-label="닫기"
+        >
+          ×
+        </button>
+      </div>
+      <div id="dialog-content"></div>
+    </dialog>
+    <dialog
+      id="neighborhood-dialog"
+      aria-labelledby="neighborhood-title"
+    ></dialog>
+    <p id="toast" role="status" aria-live="polite"></p>
+  </body>
 </html>
