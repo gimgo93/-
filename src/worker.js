@@ -1,6 +1,6 @@
 import { getCatalog, readPublicFeed } from "./catalog.js";
 import { makeKML, validateFeedback } from "./policy-tools.js";
-export const securityHeaders = {
+const securityHeaders = {
   "Content-Security-Policy":
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
   "X-Content-Type-Options": "nosniff",
