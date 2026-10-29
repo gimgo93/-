@@ -1,0 +1,18 @@
+{
+  "scope": "app",
+  "tool": "Hallmark 2.0.0",
+  "sourceCommit": "8f6969f8922caabde9de1784959eae11ddf68073",
+  "summary": {
+    "fails": 0,
+    "reflex": 0,
+    "warns": 0,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 2,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 4,
+    "render": "ran"
+  },
+  "review": "in-thread; missing icon rendering corrected and re-captured; no independent reviewer claimed"
+}

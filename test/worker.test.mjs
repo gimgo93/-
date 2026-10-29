@@ -42,3 +42,17 @@ test('placeholder accepts read requests only', async () => {
   assert.equal(response.status, 405);
   assert.equal(response.headers.get('allow'), 'GET, HEAD');
 });
+
+test('API storage failures are explicit and never fabricate successful submissions', async () => {
+  const response = await worker.fetch(new Request('https://ageclan.com/app/api/dashboard'), {});
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /저장소/);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+});
+
+test('API refuses cross-origin and malformed submissions before accessing storage', async () => {
+  const response = await worker.fetch(new Request('https://ageclan.com/app/api/opinions', { method: 'POST', headers: { Origin: 'https://other.example', 'Content-Type': 'application/json' }, body: '{}' }), { APP_DB: {} });
+  assert.equal(response.status, 403);
+  const malformed = await worker.fetch(new Request('https://ageclan.com/app/api/opinions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'not json' }), { APP_DB: {} });
+  assert.equal(malformed.status, 400);
+});

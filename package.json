@@ -3,12 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
-  "scripts": {
-    "dev": "node scripts/wrangler.mjs dev --local --ip 127.0.0.1 --port 8789 --inspector-port 0",
-    "test": "node --test",
-    "build": "node scripts/wrangler.mjs deploy --dry-run --outdir .output",
-    "deploy": "node scripts/wrangler.mjs deploy"
+  "engines": {
+    "node": ">=22.13.0"
   },
-  "devDependencies": { "wrangler": "4.92.0" }
+  "scripts": {
+    "dev": "node scripts/wrangler.mjs dev --local --ip 127.0.0.1 --port 8789 --inspector-port 0 --persist-to .wrangler/state",
+    "db:local": "node scripts/wrangler.mjs d1 migrations apply APP_DB --local --persist-to .wrangler/state",
+    "test": "node --test",
+    "test:ui": "node scripts/check-ui.mjs",
+    "build": "node scripts/wrangler.mjs deploy --dry-run --outdir .output",
+    "icons": "node scripts/build-icons.mjs",
+    "db:remote": "node scripts/prepare-deploy.mjs && node scripts/wrangler.mjs d1 migrations apply APP_DB --remote --config .output/wrangler.deploy.json",
+    "deploy": "node scripts/prepare-deploy.mjs && node scripts/wrangler.mjs deploy --config .output/wrangler.deploy.json"
+  },
+  "devDependencies": {
+    "lucide-static": "1.63.0",
+    "puppeteer-core": "25.16.0",
+    "wrangler": "4.92.0"
+  }
 }
