@@ -64,7 +64,7 @@ const state = {
 };
 let map = null,
   toastTimer;
-let localOnly = true;
+let localOnly = !(state.view === "map" && state.selected?.startsWith("area:"));
 const neighborhood = setupNeighborhood({
   onChange: () => {
     localOnly = true;
@@ -182,103 +182,120 @@ function empty(
 ) {
   return `<section class="empty-state"><h2>${title}</h2><p>${text}</p></section>`;
 }
-function selectedPolicy() {
+function mapNotices() {
+  const q = state.search.trim().toLowerCase().replace(/\s+/g, "");
+  const home = neighborhood.current;
+  const groups = new Map();
+  for (const notice of state.catalog?.localNotices || []) {
+    const area = notice.mapArea;
+    if (!area || state.category !== "all") continue;
+    if (state.region !== "all" && !area.label.includes(state.region)) continue;
+    if (home && localOnly &&
+      (home.province !== area.province || (area.district &&
+        !home.district.replace(/\s+/g, "").startsWith(area.district.replace(/\s+/g, ""))))) continue;
+    if (q && !`${area.label}${notice.title}`.toLowerCase().replace(/\s+/g, "").includes(q)) continue;
+    const id = noticeMapId(area);
+    if (!groups.has(id)) groups.set(id, { ...area, id, notices: [] });
+    groups.get(id).notices.push(notice);
+  }
+  return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label, "ko"));
+}
+function noticeMapId(area) {
+  return "area:" + area.label;
+}
+function mapData() {
   const rows = filtered().filter((p) => p.locations.length);
-  return rows.find((p) => p.id === state.selected) || rows[0];
+  const groups = mapNotices();
+  const area = groups.find((g) => g.id === state.selected);
+  const policy = rows.find((p) => p.id === state.selected);
+  return { rows, groups, area, policy };
 }
 function mapDetail(p) {
-  if (!p) return "<p>선택한 조건에 지도 위치가 확인된 정책이 없습니다</p>";
-  return `${badge(p)}<h2>${esc(p.title)}</h2><p>${prose(p.summary)}</p><p><strong>원문이 설명한 지역</strong> ${esc(p.region)}</p><p class="small">${prose(p.locationEvidence)}</p><div class="button-row"><button class="button compact" data-detail="${p.id}">근거·위치 기준 보기</button>${p.locations[0] ? outLink(earth(p.locations[0]), "Google Earth로 열기", "button compact") + `<a class="button compact" href="/app/api/policies.kml?ids=${encodeURIComponent(p.id)}">이 정책 KML</a>` : ""}<button class="button compact" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button></div>`;
+  if (!p) return "<p>지도에서 지역이나 정책을 선택해 주세요</p>";
+  return `${badge(p)}<h2>${esc(p.title)}</h2><p>${prose(p.summary)}</p><p><strong>원문이 설명한 지역</strong> ${esc(p.region)}</p><p class="small">${prose(p.locationEvidence)}</p><div class="button-row"><button class="button compact" data-detail="${p.id}">근거·위치 기준 보기</button>${outLink(earth(p.locations[0]), "Google Earth로 열기", "button compact")}<a class="button compact" href="/app/api/policies.kml?ids=${encodeURIComponent(p.id)}">이 정책 KML</a><button class="button compact" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button></div>`;
 }
-function mapView() {
-  const rows = filtered().filter((p) => p.locations.length);
-  const p = selectedPolicy();
-  if (p) state.selected = p.id;
-  return `<div class="page-top"><div><h1>어디에 닿는 정책일까요?</h1></div><div class="button-row"><a class="button" href="/app/api/policies.kml">${icon("download")}Google Earth용 KML</a></div></div><p class="section-intro">정책을 선택하면 원문이 명시한 지역·거점을 볼 수 있어요<br>Google Earth에서는 위성·3D 화면으로 이어서 탐색할 수 있습니다</p>${filters()}<div class="map-layout"><div class="map-list" aria-label="지도에서 볼 정책">${rows.length ? rows.map((p) => `<button class="map-choice" data-map-select="${p.id}" aria-pressed="${state.selected === p.id}"><strong>${esc(p.title)}</strong><span>${esc(p.region)}</span><span>${p.locations.length}개 표시 위치 / ${esc(p.status)}</span></button>`).join("") : empty("지도에 표시할 정책이 없어요", "전국 정책과 지역 미확인 자료는 임의의 점으로 표시하지 않습니다")}</div><section class="map-panel"><div id="policy-map" class="map-canvas" role="region" aria-label="공개 정책 적용 지역과 거점 지도"></div><div class="map-caption" id="map-caption">파랑: 행정구역 대표 위치 / 초록: 시설·역 주변 / 주황: 행사 지역 · 사업 경계 표시 제외 <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">지도 오류 제보</a></div><div class="map-detail">${mapDetail(p)}</div></section></div>`;
+function areaDetail(area) {
+  return `<h2>${esc(area.label)} 입법예고 ${area.notices.length}건</h2><p class="small">지자체 대표 위치 · 공고별 위치는 원문에서 확인해 주세요</p><div class="button-row">${outLink(earth(area), "대표 위치를 Google Earth로 열기", "button compact")}</div><div class="map-notice-results">${area.notices.map((notice) => noticeCard(notice)).join("")}</div>`;
 }
-function mountMap() {
+function mapView({ rows, groups, area, policy }) {
+  const noticeCount = groups.reduce((sum, group) => sum + group.notices.length, 0);
+  const choices = rows.map((p) => `<button class="map-choice" data-map-select="${esc(p.id)}" aria-pressed="${policy?.id === p.id}"><strong>${esc(p.title)}</strong><span>${esc(p.region)}</span></button>`).join("");
+  const areas = groups.map((g) => `<button class="map-choice" data-map-select="${esc(g.id)}" aria-pressed="${area?.id === g.id}"><strong>${esc(g.label)}</strong><span>입법예고 ${g.notices.length}건</span></button>`).join("");
+  const list = `${areas ? `<h2>지자체 입법예고 · ${noticeCount}건</h2>${areas}` : ""}${choices ? `<h2>검토한 정책 · ${rows.length}건</h2>${choices}` : ""}`;
+  return `<div class="page-top"><h1>어디에 닿는 정책일까요?</h1><div class="button-row"><button class="button" data-action="map-overview">표시 지역 전체 보기</button><a class="button" href="/app/api/policies.kml">${icon("download")}검토한 정책 KML</a></div></div><p class="section-intro">보라색 숫자에 묶인 지자체 입법예고 ${noticeCount}건을 확인할 수 있어요</p>${filters()}<div class="map-layout"><div class="map-list" aria-label="지도에서 볼 지역과 정책">${list || empty("지도에 표시할 자료가 없어요", "다른 검색어나 필터를 선택해 주세요")}</div><section class="map-panel"><div id="policy-map" class="map-canvas" role="region" aria-label="공개 정책과 지자체 입법예고 지도"></div><div class="map-caption" id="map-caption">보라: 지자체 대표 위치 · 숫자는 공고 건수<br>파랑: 행정구역 대표 위치 / 초록: 시설·역 주변 / 주황: 행사 지역 · 사업 경계 표시 제외 <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">지도 오류 제보</a></div><div class="map-detail">${area ? areaDetail(area) : mapDetail(policy || rows[0])}</div></section></div>`;
+}
+function updateMapSelection(id, html) {
+  state.selected = id;
+  sync();
+  $(".map-detail").innerHTML = html;
+  document.querySelectorAll("[data-map-select]").forEach((button) =>
+    button.setAttribute("aria-pressed", String(button.dataset.mapSelect === id)));
+}
+function mountMap({ rows, groups, area, policy }) {
   const container = $("#policy-map");
   if (!container || !window.L) return;
-  if (map) {
-    map.remove();
-    map = null;
-  }
-  map = L.map(container, { scrollWheelZoom: false }).setView([37.5, 127.2], 8);
+  map = L.map(container, { scrollWheelZoom: false }).setView([36.3, 127.7], 7);
   const tile = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
-    attribution:
-      '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   }).addTo(map);
   tile.once("tileerror", () => {
-    $("#map-caption")?.insertAdjacentHTML(
-      "beforeend",
-      " <strong>배경 지도를 불러오지 못한 경우 위치 목록과 Google Earth 링크를 이용해 주세요</strong>",
-    );
+    $("#map-caption")?.insertAdjacentHTML("beforeend", " <strong>배경 지도를 불러오지 못한 경우 위치 목록과 Google Earth 링크를 이용해 주세요</strong>");
   });
-  const active = selectedPolicy();
   const bounds = [];
-  for (const p of filtered()) {
+  for (const p of rows) {
     for (const l of p.locations) {
-      const selected = p.id === active?.id;
-      const color =
-        l.precision === "event-area"
-          ? "#a96919"
-          : ["facility", "station-area"].includes(l.precision)
-            ? "#18714e"
-            : "#075cc9";
-      const marker = L.circleMarker([l.latitude, l.longitude], {
-        radius: selected ? 10 : 7,
-        color,
-        fillColor: color,
-        fillOpacity: selected ? 0.9 : 0.55,
-        weight: selected ? 3 : 2,
+      const point = [l.latitude, l.longitude];
+      const selected = p.id === policy?.id;
+      const color = l.precision === "event-area" ? "#a96919"
+        : ["facility", "station-area"].includes(l.precision) ? "#18714e" : "#075cc9";
+      const marker = L.circleMarker(point, {
+        radius: selected ? 10 : 7, color, fillColor: color,
+        fillOpacity: selected ? 0.9 : 0.55, weight: selected ? 3 : 2,
       }).addTo(map);
-      marker.bindPopup(
-        `<strong>${esc(l.label)}</strong><span>${esc(p.title)}</span><p>${prose(l.note)}</p>${outLink(earth(l), "Google Earth로 열기")}`,
-      );
-      marker.on("click", () => {
-        state.selected = p.id;
-        sync();
-        $(".map-detail").innerHTML = mapDetail(p);
-        document
-          .querySelectorAll("[data-map-select]")
-          .forEach((b) =>
-            b.setAttribute(
-              "aria-pressed",
-              b.dataset.mapSelect === p.id ? "true" : "false",
-            ),
-          );
-      });
-      if (selected) bounds.push([l.latitude, l.longitude]);
+      marker.bindPopup(`<strong>${esc(l.label)}</strong><span>${esc(p.title)}</span><p>${prose(l.note)}</p>${outLink(earth(l), "Google Earth로 열기")}`);
+      marker.on("click", () => updateMapSelection(p.id, mapDetail(p)));
+      bounds.push(point);
     }
+  }
+  for (const group of groups) {
+    const point = [group.latitude, group.longitude];
+    const label = `${group.label} 입법예고 ${group.notices.length}건`;
+    const selected = group.id === area?.id;
+    const marker = L.marker(point, {
+      title: label,
+      zIndexOffset: selected ? 500 : 0,
+      icon: L.divIcon({
+        className: selected ? "notice-map-marker is-selected" : "notice-map-marker",
+        html: `<span>${group.notices.length}</span>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      }),
+    }).addTo(map);
+    marker.getElement().setAttribute("aria-label", label);
+    marker.bindPopup(`<strong>${esc(label)}</strong><p>공고 목록은 지도 아래에서 확인할 수 있어요</p>`);
+    marker.on("click", () => updateMapSelection(group.id, areaDetail(group)));
+    bounds.push(point);
   }
   if (neighborhood.current && localOnly) {
     const n = neighborhood.current;
-    L.rectangle(
-      [
-        [n.bbox[1], n.bbox[0]],
-        [n.bbox[3], n.bbox[2]],
-      ],
-      { color: "#627086", weight: 1, dashArray: "5,5", fill: false },
-    )
-      .addTo(map)
-      .bindPopup(esc(n.label) + " / 동네 경계의 외접 범위");
-    map.fitBounds(
-      [
-        [n.bbox[1], n.bbox[0]],
-        [n.bbox[3], n.bbox[2]],
-      ],
-      { padding: [35, 35], maxZoom: 13 },
-    );
-  } else if (bounds.length === 1)
-    map.setView(
-      bounds[0],
-      active.locations[0].precision === "administrative-area" ? 10 : 13,
-    );
-  else if (bounds.length > 1)
-    map.fitBounds(bounds, { padding: [45, 45], maxZoom: 12 });
+    const box = [[n.bbox[1], n.bbox[0]], [n.bbox[3], n.bbox[2]]];
+    L.rectangle(box, { color: "#627086", weight: 1, dashArray: "5,5", fill: false })
+      .addTo(map).bindPopup(esc(n.label) + " / 동네 경계의 외접 범위");
+    if (!area && !policy) bounds.push(...box);
+  }
+  if (area) map.setView([area.latitude, area.longitude], area.district ? 10 : 8);
+  else if (policy?.locations.length === 1) {
+    const l = policy.locations[0];
+    map.setView([l.latitude, l.longitude], l.precision === "administrative-area" ? 10 : 13);
+  } else if (policy) {
+    map.fitBounds(policy.locations.map((l) => [l.latitude, l.longitude]), { padding: [45, 45], maxZoom: 12 });
+  } else if (bounds.length) {
+    map.fitBounds(bounds, { padding: [24, 24], maxZoom: 10 });
+  }
   map.invalidateSize();
 }
+
 function compare() {
   const rows = policies().filter((p) => state.saved.has(p.id));
   const kml = `/app/api/policies.kml?ids=${encodeURIComponent(rows.map((p) => p.id).join(","))}`;
@@ -351,8 +368,8 @@ async function loadFeed() {
   state.feedLoading = false;
   if ($("#feed-result")) $("#feed-result").innerHTML = feedHTML();
 }
-function noticeCard(p) {
-  return `<article class="local-notice"><p class="small">${esc(p.region)} · 공고일 ${date(p.publishedAt)}</p><h3>${outLink(p.sourceUrl, esc(p.title))}</h3><div class="button-row"><span class="small">${esc(p.sourceName)} · ${esc(p.reference)}</span><button class="text-button small" data-write="${esc(p.id)}">이 정책에 의견 남기기</button></div></article>`;
+function noticeCard(p, showMap = false) {
+  return `<article class="local-notice"><p class="small">${esc(p.region)} · 공고일 ${date(p.publishedAt)}</p><h3>${outLink(p.sourceUrl, esc(p.title))}</h3><div class="button-row"><span class="small">${esc(p.sourceName)} · ${esc(p.reference)}</span>${showMap && p.mapArea ? `<button class="text-button small" data-map="${esc(noticeMapId(p.mapArea))}">지도에서 보기</button>` : ""}<button class="text-button small" data-write="${esc(p.id)}">이 정책에 의견 남기기</button></div></article>`;
 }
 
 function localNoticeList() {
@@ -361,7 +378,7 @@ function localNoticeList() {
     `${p.region} ${p.title} ${p.reference}`.toLowerCase().includes(q),
   );
   return `<p class="small" role="status">${rows.length}건 · 공고일 최신순</p>${rows.length
-    ? `<div class="local-notice-grid">${rows.slice(0, state.localLimit).map(noticeCard).join("")}</div>`
+    ? `<div class="local-notice-grid">${rows.slice(0, state.localLimit).map((p) => noticeCard(p, true)).join("")}</div>`
     : empty("일치하는 입법예고가 없어요", "다른 시·군·구나 정책명으로 검색해 보세요")}${rows.length > state.localLimit
     ? '<button class="button" data-action="more-local-notices">공고 12건 더 보기</button>'
     : ""}`;
@@ -375,23 +392,26 @@ function latestNoticeList() {
   const latest = state.latestNotices;
   if (!latest) return '<p role="status">최신 지방 입법예고를 확인하고 있어요</p>';
   const fetchedAt = latest.fetchedAt
-    ? new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Seoul" }).format(new Date(latest.fetchedAt))
+    ? new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "medium", timeZone: "Asia/Seoul" }).format(new Date(latest.fetchedAt))
     : "";
   const message = latest.status === "live" ? "공식 목록 최신순 · 최대 6건" : "원본 연결이 늦어 마지막으로 확인한 자료를 표시해요";
-  return `<p class="small" role="status">${message}${fetchedAt ? ` · ${esc(fetchedAt)} 확인` : ""}</p><div class="local-notice-grid">${latest.items.map(noticeCard).join("")}</div>`;
+  return `<p class="small" role="status">${message}${fetchedAt ? ` · ${esc(fetchedAt)} 확인` : ""}</p><div class="local-notice-grid">${latest.items.map((p) => noticeCard(p)).join("")}</div>`;
 }
 
 function localDirectory() {
   return `<section class="local-directory"><div class="result-heading"><h2>전국 지자체 입법예고</h2></div><p class="small">거제·김천·상주를 비롯한 시·군·구가 공개한 조례·규칙 제정 및 개정안</p><label class="local-search" for="local-notice-search">지역·정책명 검색<input id="local-notice-search" type="search" value="${esc(state.localSearch)}" placeholder="예: 김천, 돌봄, 자전거"></label><div id="local-notice-list">${localNoticeList()}</div></section><section class="local-directory"><div class="result-heading"><h2>더 많은 정책</h2><button class="button compact" data-action="refresh-local-notices" ${state.latestLoading ? "disabled" : ""}>새로 확인</button></div><div id="latest-notice-list">${latestNoticeList()}</div></section>`;
 }
 
-async function loadLatestNotices() {
+async function loadLatestNotices(refreshSource = false) {
   if (state.latestLoading) return;
   state.latestLoading = true;
   const refresh = $('[data-action="refresh-local-notices"]');
-  if (refresh) refresh.disabled = true;
+  if (refresh) {
+    refresh.disabled = true;
+    refresh.textContent = "확인 중…";
+  }
   try {
-    state.latestNotices = await requestJSON("/app/api/local-notices");
+    state.latestNotices = await requestJSON("/app/api/local-notices" + (refreshSource ? "?refresh=1" : ""));
   } catch {
     state.latestNotices = {
       ...state.latestNotices,
@@ -403,7 +423,10 @@ async function loadLatestNotices() {
     const list = $("#latest-notice-list");
     if (list) list.innerHTML = latestNoticeList();
     const currentRefresh = $('[data-action="refresh-local-notices"]');
-    if (currentRefresh) currentRefresh.disabled = false;
+    if (currentRefresh) {
+      currentRefresh.disabled = false;
+      currentRefresh.textContent = "새로 확인";
+    }
     if (state.view === "write") updatePolicyOptions($("#feedback-form"));
   }
 }
@@ -604,15 +627,16 @@ function render() {
   }
   if (!state.catalog) return;
   $("#reviewed-date").textContent = state.catalog.reviewedAt;
+  const visibleMap = state.view === "map" ? mapData() : null;
   $("#workspace").innerHTML = {
     discover,
-    map: mapView,
+    map: () => mapView(visibleMap),
     compare,
     opinions,
     sources: sourcesView,
     write,
   }[state.view]();
-  if (state.view === "map") mountMap();
+  if (visibleMap) mountMap(visibleMap);
   if (activeId && document.getElementById(activeId)) {
     document.getElementById(activeId).focus({ preventScroll: true });
     if (selection !== null)
@@ -718,6 +742,12 @@ document.addEventListener("click", (e) => {
     return;
   }
   if (b.dataset.map) {
+    if (b.dataset.map.startsWith("area:")) {
+      localOnly = false;
+      state.search = "";
+      state.category = "all";
+      state.region = "all";
+    }
     state.selected = b.dataset.map;
     return go("map");
   }
@@ -730,7 +760,12 @@ document.addEventListener("click", (e) => {
   const action = b.dataset.action;
   if (action === "choose-feedback-location") return chooseFeedbackLocation(b.form);
   if (action === "delete-feedback") return deleteFeedback(b);
-  if (action === "refresh-local-notices") return loadLatestNotices();
+  if (action === "refresh-local-notices") return loadLatestNotices(true);
+  if (action === "map-overview") {
+    state.selected = null;
+    sync();
+    return render();
+  }
   if (action === "more-local-notices") {
     state.localLimit += 12;
     return drawLocalList();

@@ -46,7 +46,7 @@ async function api(request, env, url, ctx) {
   if (url.pathname === "/app/api/policies" && request.method === "GET")
     return json({ ...catalog, localNotices });
   if (url.pathname === "/app/api/local-notices" && request.method === "GET")
-    return json(await readLatestNotices(ctx));
+    return json(await readLatestNotices(ctx, { refresh: url.searchParams.get("refresh") === "1" }));
   const noticeId = url.pathname.match(/^\/app\/api\/local-notices\/(local-\d{1,12})$/)?.[1];
   if (noticeId && request.method === "GET") {
     const notice = await findLocalNotice(noticeId, ctx);

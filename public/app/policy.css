@@ -1463,3 +1463,31 @@ a.skip-link{color:var(--ink);background:var(--paper)}.map-caption{color:var(--mu
 .delete-feedback {
   color: #85372a;
 }
+.map-list > h2 {
+  margin: 14px 0 4px;
+  padding: 0 16px;
+  font-size: 0.95rem;
+}
+.notice-map-marker {
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #573589;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 4px #1f173550;
+}
+.notice-map-marker.is-selected,
+.notice-map-marker:focus-visible {
+  outline: 3px solid #573589;
+  outline-offset: 1px;
+}
+.map-notice-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}

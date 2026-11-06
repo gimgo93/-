@@ -50,6 +50,7 @@ export function localNoticePolicy(item) {
 
 async function readHTML(url) {
   const response = await fetch(url, {
+    cache: "no-store",
     signal: AbortSignal.timeout(8000),
     headers: { Accept: "text/html", "User-Agent": "sepol/2.0 (+https://ageclan.com/app/)" },
   });
