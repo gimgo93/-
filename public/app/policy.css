@@ -1413,3 +1413,53 @@ a.skip-link{color:var(--ink);background:var(--paper)}.map-caption{color:var(--mu
   font-size: 1rem;
   font-weight: 700;
 }
+.local-directory {
+  margin-top: 36px;
+}
+.local-directory .result-heading {
+  align-items: center;
+  gap: 12px;
+}
+.local-search {
+  display: grid;
+  gap: 6px;
+  max-width: 390px;
+  font-weight: 650;
+}
+.local-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--field-edge);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.local-notice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.local-notice {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 0;
+}
+.local-notice p, .local-notice h3 {
+  margin: 0 0 8px;
+}
+.local-notice h3 {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.local-notice .button-row, .feedback-item .button-row {
+  justify-content: space-between;
+}
+.feedback-item > small {
+  display: block;
+}
+.delete-feedback {
+  color: #85372a;
+}

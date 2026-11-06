@@ -111,31 +111,37 @@ try {
   results.push(
     `공개 RSS 상태: ${feedText.includes("실제 조회") ? "실제 목록 수신" : "연결 오류를 명시적으로 표시"}`,
   );
+  await page.click("nav [data-view=discover]");
+  await page.waitForSelector("#latest-notice-list .local-notice");
+  assert.equal(await page.$$("#latest-notice-list .local-notice").then((a) => a.length), 6);
+  for (const city of ["거제", "상주", "김천"]) {
+    await page.$eval("#local-notice-search", (input, value) => {
+      input.value = value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }, city);
+    assert.match(await page.$eval("#local-notice-list .local-notice", (e) => e.textContent), new RegExp(city));
+  }
+  results.push("거제·상주·김천 공고 검색과 최신 공고 6건");
   // One synthetic local opinion, removed by exact UUID after the test.
-  await page.click("[data-view=write]");
-  assert.equal(await page.$eval(".feedback-fields", (e) => e.disabled), true);
-  await page.evaluate(() => {
-    navigator.geolocation.getCurrentPosition = (_ok, fail) => fail({ code: 1 });
-  });
-  await page.click("[data-action=locate-feedback]");
-  await page.waitForFunction(() =>
-    document.querySelector("#feedback-location-status").textContent.includes("위치 권한을 허용"),
-  );
-  assert.equal(await page.$eval(".feedback-fields", (e) => e.disabled), true);
-  await page.evaluate(() => {
-    navigator.geolocation.getCurrentPosition = (ok) =>
-      ok({ coords: { latitude: 36.11493, longitude: 128.082695, accuracy: 30 } });
-  });
-  await page.click("[data-action=locate-feedback]");
-  await page.waitForFunction(() => !document.querySelector(".feedback-fields").disabled);
+  await page.click(".site-header [data-view=write]");
+  await page.click("[data-action=choose-feedback-location]");
+  await page.waitForFunction(() => document.querySelector("#neighborhood-province").options.length > 2);
+  await page.select("#neighborhood-province", "경상북도");
+  await page.select("#neighborhood-district", "김천시");
+  await page.select("#neighborhood-town", "4715059500");
+  await page.click("#neighborhood-form [type=submit]");
   const place = "경상북도 김천시 대곡동";
   assert.equal(await page.$eval("#feedback-location-status", (e) => e.textContent), place);
   assert.equal(await page.evaluate(() => localStorage.getItem("sepol.neighborhood.v1")), null);
+  await page.type("#feedback-policy-search", "김천");
   const id = await page.$eval(
     '#feedback-policy option[value]:not([value=""])',
     (e) => e.value,
   );
+  assert.match(id, /^local-/);
   await page.select("#feedback-policy", id);
+  const publication = await page.$eval("#feedback-policy-date", (e) => e.textContent);
+  assert.match(publication, /정책 발표·공고일 2026/);
   await page.type("#feedback-title", "자동 UI 검증용 공개 의견");
   await page.type(
     "#feedback-content",
@@ -157,6 +163,7 @@ try {
     "consent", "content", "neighborhoodCode", "policyId", "requestId", "title",
   ]);
   assert.equal(await page.$eval(".receipt .feedback-place", (e) => e.textContent), place);
+  assert.match(await page.$eval(".receipt", (e) => e.textContent), new RegExp(publication.replaceAll(".", "\\.")));
   await page.click(".receipt [data-view=opinions]");
   await page.waitForSelector(".feedback-item");
   assert.equal(await page.$eval(".feedback-item .feedback-place", (e) => e.textContent), place);
@@ -165,7 +172,27 @@ try {
     await page.$eval(".feedback-item", (e) => e.textContent),
     /<script>/,
   );
-  results.push("실제 로컬 DB 저장·공개 내용 이스케이프");
+  const attempted = await page.evaluate(async (id) => {
+    const token = "a".repeat(64);
+    const headers = { Authorization: "Bearer " + token };
+    const list = await fetch("/app/api/feedback", { headers }).then((r) => r.json());
+    const row = list.items.find((p) => p.id === id);
+    const deletion = await fetch("/app/api/feedback/" + id, { method: "DELETE", headers });
+    return { own: row.can_delete, status: deletion.status, published: row.policy_published_at,
+      secretExposed: "author_hash" in row };
+  }, submittedId);
+  assert.equal(attempted.own, false);
+  assert.equal(attempted.status, 404);
+  assert.equal(attempted.secretExposed, false);
+  assert.match(attempted.published, /^2026-\d\d-\d\d$/);
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.click("[data-action=delete-feedback]");
+  await page.waitForFunction(() => !document.querySelector("[data-action=delete-feedback]"));
+  assert.equal(await page.evaluate(async (id) => {
+    const list = await fetch("/app/api/feedback").then((r) => r.json());
+    return list.items.some((p) => p.id === id);
+  }, submittedId), false);
+  results.push("정책·지역 직접 선택, 공고일 표시, 작성자만 삭제, 공개 내용 이스케이프");
   await page.setRequestInterception(true);
   page.on("request", (r) =>
     r.url().startsWith("https://tile.openstreetmap.org/")

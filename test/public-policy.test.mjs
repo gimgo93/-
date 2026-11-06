@@ -4,12 +4,26 @@ import fs from "node:fs/promises";
 import { XMLParser } from "fast-xml-parser";
 import { getCatalog, parseFeed } from "../src/catalog.js";
 import { makeKML, validateFeedback } from "../src/policy-tools.js";
+import { localNoticePolicy, parseLocalNotices } from "../src/local-notices.js";
 import {
   inGeometry,
   findRegion,
   coverageFor,
 } from "../public/app/neighborhood.js";
 import worker from "../src/worker.js";
+
+test("local notices retain official IDs and dates and reject unrelated rows", () => {
+  const rows = parseLocalNotices('<table><tr>' +
+    '<td data-th="입법예고명"><a href="/gcom/sgLmPp/42?pageIndex=2">시민 &amp; 지원 조례안</a></td>' +
+    '<td data-th="자치단체"> 경상북도 김천시 </td><td data-th="공고번호">제2026-12호</td>' +
+    '<td data-th="공고일자">2026. 11. 6.</td></tr>' +
+    '<tr><td data-th="입법예고명"><a href="https://example.com/1"> unrelated </a></td></tr></table>');
+  assert.deepEqual(rows, [{
+    id: "local-42", title: "시민 & 지원 조례안", region: "경상북도 김천시",
+    reference: "제2026-12호", publishedAt: "2026-11-06",
+  }]);
+  assert.equal(localNoticePolicy(rows[0]).sourceUrl, "https://opinion.lawmaking.go.kr/gcom/sgLmPp/42");
+});
 
 test("reviewed official policies retain provenance and have no invented opinion metrics", () => {
   const { policies } = getCatalog();

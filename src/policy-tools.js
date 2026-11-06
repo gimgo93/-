@@ -48,7 +48,7 @@ export function validateFeedback(input, policies) {
     return { error: "의견 공개와 저장에 동의해 주세요" };
   const neighborhood = neighborhoodLabels.get(input.neighborhoodCode);
   if (input.neighborhoodCode !== undefined && !neighborhood)
-    return { error: "현재 위치의 행정동을 다시 확인해 주세요" };
+    return { error: "읍·면·동을 다시 선택해 주세요" };
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       input.requestId || "",
@@ -60,6 +60,8 @@ export function validateFeedback(input, policies) {
       id: input.requestId,
       policy_id: policy.id,
       policy_title: policy.title,
+      policy_published_at: policy.publishedAt,
+      policy_source_url: policy.sourceUrl,
       region: policy.region,
       neighborhood: neighborhood ?? null,
       title,

@@ -19,14 +19,16 @@ export function setupNeighborhood({ onChange }) {
     index = null,
     busy = false,
     manualProvince = "",
-    manualDistrict = "";
+    manualDistrict = "",
+    onPick = null;
   const bar = document.getElementById("neighborhood-bar"),
     dialog = document.getElementById("neighborhood-dialog");
   function draw() {
     bar.innerHTML = `<div class="neighborhood-inner"><div><span class="neighborhood-label">우리 동네</span><strong>${esc(current?.label || "동네를 설정해 주세요")}</strong><small>${current ? (current.method === "location" ? "위치로 찾은 기본 동네 / 언제든 변경 가능" : "직접 선택한 기본 동네") : "위치를 허용하거나 직접 선택하면 동네 관련 정책이 기본으로 표시됩니다"}</small></div><div class="button-row"><button class="button compact" data-neighborhood="open">${current ? "동네 변경" : "동네 설정"}</button>${current ? '<button class="text-button small" data-neighborhood="clear">설정 해제</button>' : ""}</div></div>`;
   }
-  function open() {
-    dialog.innerHTML = `<div class="dialog-top"><h2 id="neighborhood-title">우리 동네 설정</h2><button class="icon-button" data-neighborhood="close" aria-label="동네 설정 닫기">×</button></div><p class="location-intro">현재 위치로 기본 동네를 설정하거나 아래에서 직접 선택할 수 있어요</p><section class="location-option"><h3>현재 위치로 동네 찾기</h3><p>‘위치 권한 요청’을 누르면 브라우저의 위치 허용 창이 열립니다<br>정확한 좌표는 이 기기에서만 행정동 경계와 대조하며, 외부 업체나 앱 DB로 전송하지 않습니다<br>저장하는 정보는 동네 이름·대표 위치입니다</p><button class="button primary" data-neighborhood="locate" ${busy ? "disabled" : ""}>${busy ? "동네를 찾는 중…" : "위치 권한 요청"}</button><p class="small">브라우저·기기 설정에서 위치 권한을 언제든 취소할 수 있습니다</p></section><div class="location-divider">또는 직접 선택</div><form id="neighborhood-form"><label for="neighborhood-province">시·도<select id="neighborhood-province" required><option value="">목록을 불러오는 중…</option></select></label><label for="neighborhood-district">시·군·구<select id="neighborhood-district" required disabled><option value="">시·도를 먼저 선택하세요</option></select></label><label for="neighborhood-town">읍·면·동<select id="neighborhood-town" required disabled><option value="">시·군·구를 먼저 선택하세요</option></select></label><button class="button" type="submit">선택한 동네를 기본으로 설정</button></form><p id="location-status" class="location-status" role="status" aria-live="polite"></p><p class="small">2026-10-01 행정동 경계를 사용합니다<br>경계 부근·측정 오차로 다르게 나올 수 있으니 확인 후 변경하세요 <a href="/app/licenses/Neighborhood-DATA-LICENSE.txt" target="_blank" rel="noopener">경계 데이터 출처·이용 조건</a></p>`;
+  function open(pick = null) {
+    onPick = pick;
+    dialog.innerHTML = `<div class="dialog-top"><h2 id="neighborhood-title">${pick ? "의견을 남길 지역 선택" : "우리 동네 설정"}</h2><button class="icon-button" data-neighborhood="close" aria-label="동네 설정 닫기">×</button></div><p class="location-intro">${pick ? "시·도, 시·군·구, 읍·면·동을 선택해 주세요" : "현재 위치로 기본 동네를 설정하거나 아래에서 직접 선택할 수 있어요"}</p><section class="location-option"><h3>현재 위치로 동네 찾기</h3><p>‘위치 권한 요청’을 누르면 브라우저의 위치 허용 창이 열립니다<br>정확한 좌표는 이 기기에서만 행정동 경계와 대조하며, 외부 업체나 앱 DB로 전송하지 않습니다<br>저장하는 정보는 동네 이름·대표 위치입니다</p><button class="button primary" data-neighborhood="locate" ${busy ? "disabled" : ""}>${busy ? "동네를 찾는 중…" : "위치 권한 요청"}</button><p class="small">브라우저·기기 설정에서 위치 권한을 언제든 취소할 수 있습니다</p></section><div class="location-divider">또는 직접 선택</div><form id="neighborhood-form"><label for="neighborhood-province">시·도<select id="neighborhood-province" required><option value="">목록을 불러오는 중…</option></select></label><label for="neighborhood-district">시·군·구<select id="neighborhood-district" required disabled><option value="">시·도를 먼저 선택하세요</option></select></label><label for="neighborhood-town">읍·면·동<select id="neighborhood-town" required disabled><option value="">시·군·구를 먼저 선택하세요</option></select></label><button class="button" type="submit">${pick ? "이 지역 선택" : "선택한 동네를 기본으로 설정"}</button></form><p id="location-status" class="location-status" role="status" aria-live="polite"></p><p class="small">2026-10-01 행정동 경계를 사용합니다<br>경계 부근·측정 오차로 다르게 나올 수 있으니 확인 후 변경하세요 <a href="/app/licenses/Neighborhood-DATA-LICENSE.txt" target="_blank" rel="noopener">경계 데이터 출처·이용 조건</a></p>`;
     if (!dialog.open) dialog.showModal();
     populate().catch((e) => setStatus(e.message));
   }
@@ -84,6 +86,13 @@ export function setupNeighborhood({ onChange }) {
         .join("");
   }
   function apply(region, method) {
+    if (onPick) {
+      const pick = onPick;
+      onPick = null;
+      dialog.close();
+      pick(region);
+      return;
+    }
     current = storeNeighborhood(region, method);
     draw();
     dialog.close();
@@ -91,6 +100,7 @@ export function setupNeighborhood({ onChange }) {
   }
   async function locate({ silent = false } = {}) {
     if (busy) return;
+    const pick = onPick;
     if (!navigator.geolocation) {
       if (!silent)
         setStatus(
@@ -123,6 +133,8 @@ export function setupNeighborhood({ onChange }) {
         document.getElementById("neighborhood-town").value = region.code;
         return;
       }
+      if (!silent && (!dialog.open || onPick !== pick)) return;
+      if (silent && onPick) return;
       apply(region, "location");
     } catch (e) {
       if (!silent)
@@ -182,6 +194,9 @@ export function setupNeighborhood({ onChange }) {
     );
     if (region) apply(region, "manual");
     else setStatus("읍·면·동까지 선택해 주세요");
+  });
+  dialog.addEventListener("close", () => {
+    if (!dialog.open) onPick = null;
   });
   draw();
   return {

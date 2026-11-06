@@ -1,5 +1,5 @@
-import { setupNeighborhood } from "./neighborhood-ui.js?v=4";
-import { coverageFor, locateNeighborhood } from "./neighborhood.js?v=4";
+import { setupNeighborhood } from "./neighborhood-ui.js?v=7";
+import { coverageFor } from "./neighborhood.js?v=4";
 import { earthURL as earth } from "./earth-link.js";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
@@ -52,6 +52,11 @@ const state = {
   selected: params.get("policy") || null,
   feedback: null,
   feedbackError: "",
+  latestNotices: null,
+  latestLoading: false,
+  localSearch: "",
+  localLimit: 12,
+  extraPolicy: null,
   feed: null,
   feedLoading: false,
   requestId: crypto.randomUUID(),
@@ -169,7 +174,7 @@ function card(p) {
 }
 function discover() {
   const rows = filtered();
-  return `<section class="hero"><div><h1>${neighborhood.current ? esc(neighborhood.current.town) + "에서 시작하는<br>우리 동네 정책 탐색" : "우리 동네 정책을<br>근거부터 살펴보세요"}</h1><p>무엇을 바꾸려는 정책인지, 누구를 위한 것인지<br>확인한 공개자료를 쉽게 읽고 지역과 함께 살펴보세요</p><div class="button-row"><button class="button primary" data-view="map">${icon("map-pin")}정책 지도 열기</button></div></div><dl class="hero-facts"><div><dt>확인한 정책·사업</dt><dd>${policies().length}<small>건</small></dd></div><div><dt>공식 원문 기관</dt><dd>2<small>개</small></dd></div><div><dt>지도 위치·거점</dt><dd>${policies().reduce((n, p) => n + p.locations.length, 0)}<small>곳</small></dd></div></dl></section>${scopeNote()}${filters()}<div class="result-heading"><h2>검토한 정책 <span class="muted">${rows.length}건</span></h2><span class="small">발표일 최신순</span></div>${rows.length ? `<div class="policy-grid">${rows.map(card).join("")}</div>` : empty("조건에 맞는 정책이 없어요", "다른 검색어나 분야·지역을 선택해 주세요")}<section class="review-notes"><h2>정책의 상태까지 함께 읽으세요</h2><p class="small">발표 계획은 완료된 사업과 다르고, 행사 장소는 정책 전체의 적용 지역이 아닙니다<br>각 정책의 ‘확인할 점’과 위치 판단 근거를 열어보세요</p></section>`;
+  return `<section class="hero"><div><h1>${neighborhood.current ? esc(neighborhood.current.town) + "에서 시작하는<br>우리 동네 정책 탐색" : "우리 동네 정책을<br>근거부터 살펴보세요"}</h1><p>무엇을 바꾸려는 정책인지, 누구를 위한 것인지<br>확인한 공개자료를 쉽게 읽고 지역과 함께 살펴보세요</p><div class="button-row"><button class="button primary" data-view="map">${icon("map-pin")}정책 지도 열기</button></div></div><dl class="hero-facts"><div><dt>확인한 정책·사업</dt><dd>${policies().length}<small>건</small></dd></div><div><dt>공식 원문 기관</dt><dd>2<small>개</small></dd></div><div><dt>지도 위치·거점</dt><dd>${policies().reduce((n, p) => n + p.locations.length, 0)}<small>곳</small></dd></div></dl></section>${scopeNote()}${filters()}<div class="result-heading"><h2>검토한 정책 <span class="muted">${rows.length}건</span></h2><span class="small">발표일 최신순</span></div>${rows.length ? `<div class="policy-grid">${rows.map(card).join("")}</div>` : empty("조건에 맞는 정책이 없어요", "다른 검색어나 분야·지역을 선택해 주세요")}<section class="review-notes"><h2>정책의 상태까지 함께 읽으세요</h2><p class="small">발표 계획은 완료된 사업과 다르고, 행사 장소는 정책 전체의 적용 지역이 아닙니다<br>각 정책의 ‘확인할 점’과 위치 판단 근거를 열어보세요</p></section>${localDirectory()}`;
 }
 function empty(
   title = "아직 표시할 자료가 없어요",
@@ -346,57 +351,229 @@ async function loadFeed() {
   state.feedLoading = false;
   if ($("#feed-result")) $("#feed-result").innerHTML = feedHTML();
 }
-function opinions() {
-  return `<div class="page-top"><div><h1>정책을 읽고, 의견을 나눠요</h1></div><button class="button primary write-button" data-view="write">의견 남기기</button></div><p class="section-intro">이곳에 남긴 의견은 세폴의 시민 의견 목록에 공개돼요<br>행정기관 접수는 별도로 해야 해요</p>${state.feedbackError ? `<p class="notice warning">${prose(state.feedbackError)} <button class="text-button" data-action="retry-feedback">다시 불러오기</button></p>` : state.feedback === null ? '<p role="status">실제 접수 의견을 불러오고 있어요</p>' : state.feedback.items.length ? `<p class="small">총 ${state.feedback.total}건${state.feedback.total > state.feedback.limit ? ` 중 최근 ${state.feedback.limit}건` : ""}</p><div class="feedback-list">${state.feedback.items.map((r) => `<article class="feedback-item">${r.neighborhood ? `<span class="feedback-place">${icon("map-pin")}${esc(r.neighborhood)}</span>` : ""}<small>${r.neighborhood ? "" : `정책 적용 지역 ${esc(r.region)} / `}${date(r.created_at)}</small><h2>${esc(r.title)}</h2><p>${esc(r.content)}</p><button class="text-button small" data-detail="${esc(r.policy_id)}">관련 정책: ${esc(r.policy_title)}</button></article>`).join("")}</div>` : empty("아직 접수된 시민 의견이 없어요", "첫 번째 의견을 남겨 주세요")}`;
+function noticeCard(p) {
+  return `<article class="local-notice"><p class="small">${esc(p.region)} · 공고일 ${date(p.publishedAt)}</p><h3>${outLink(p.sourceUrl, esc(p.title))}</h3><div class="button-row"><span class="small">${esc(p.sourceName)} · ${esc(p.reference)}</span><button class="text-button small" data-write="${esc(p.id)}">이 정책에 의견 남기기</button></div></article>`;
 }
+
+function localNoticeList() {
+  const q = state.localSearch.trim().toLowerCase();
+  const rows = (state.catalog.localNotices || []).filter((p) =>
+    `${p.region} ${p.title} ${p.reference}`.toLowerCase().includes(q),
+  );
+  return `<p class="small" role="status">${rows.length}건 · 공고일 최신순</p>${rows.length
+    ? `<div class="local-notice-grid">${rows.slice(0, state.localLimit).map(noticeCard).join("")}</div>`
+    : empty("일치하는 입법예고가 없어요", "다른 시·군·구나 정책명으로 검색해 보세요")}${rows.length > state.localLimit
+    ? '<button class="button" data-action="more-local-notices">공고 12건 더 보기</button>'
+    : ""}`;
+}
+function drawLocalList() {
+  const list = $("#local-notice-list");
+  if (list) list.innerHTML = localNoticeList();
+}
+
+function latestNoticeList() {
+  const latest = state.latestNotices;
+  if (!latest) return '<p role="status">최신 지방 입법예고를 확인하고 있어요</p>';
+  const fetchedAt = latest.fetchedAt
+    ? new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Seoul" }).format(new Date(latest.fetchedAt))
+    : "";
+  const message = latest.status === "live" ? "공식 목록 최신순 · 최대 6건" : "원본 연결이 늦어 마지막으로 확인한 자료를 표시해요";
+  return `<p class="small" role="status">${message}${fetchedAt ? ` · ${esc(fetchedAt)} 확인` : ""}</p><div class="local-notice-grid">${latest.items.map(noticeCard).join("")}</div>`;
+}
+
+function localDirectory() {
+  return `<section class="local-directory"><div class="result-heading"><h2>전국 지자체 입법예고</h2></div><p class="small">거제·김천·상주를 비롯한 시·군·구가 공개한 조례·규칙 제정 및 개정안</p><label class="local-search" for="local-notice-search">지역·정책명 검색<input id="local-notice-search" type="search" value="${esc(state.localSearch)}" placeholder="예: 김천, 돌봄, 자전거"></label><div id="local-notice-list">${localNoticeList()}</div></section><section class="local-directory"><div class="result-heading"><h2>더 많은 정책</h2><button class="button compact" data-action="refresh-local-notices" ${state.latestLoading ? "disabled" : ""}>새로 확인</button></div><div id="latest-notice-list">${latestNoticeList()}</div></section>`;
+}
+
+async function loadLatestNotices() {
+  if (state.latestLoading) return;
+  state.latestLoading = true;
+  const refresh = $('[data-action="refresh-local-notices"]');
+  if (refresh) refresh.disabled = true;
+  try {
+    state.latestNotices = await requestJSON("/app/api/local-notices");
+  } catch {
+    state.latestNotices = {
+      ...state.latestNotices,
+      status: "stale",
+      items: state.latestNotices?.items ?? (state.catalog?.localNotices || []).slice(0, 6),
+    };
+  } finally {
+    state.latestLoading = false;
+    const list = $("#latest-notice-list");
+    if (list) list.innerHTML = latestNoticeList();
+    const currentRefresh = $('[data-action="refresh-local-notices"]');
+    if (currentRefresh) currentRefresh.disabled = false;
+    if (state.view === "write") updatePolicyOptions($("#feedback-form"));
+  }
+}
+
+function authorHeaders(create = false) {
+  const key = "sepol.feedback.author.v1";
+  let token;
+  try {
+    token = localStorage.getItem(key);
+    if (create && !/^[0-9a-f]{64}$/.test(token ?? "")) {
+      token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
+      localStorage.setItem(key, token);
+    }
+  } catch {
+    if (create) throw Error("이 브라우저에서 사이트 데이터 저장을 허용해야 의견을 남길 수 있어요");
+  }
+  return /^[0-9a-f]{64}$/.test(token ?? "") ? { Authorization: "Bearer " + token } : {};
+}
+function authorHeadersForWrite() {
+  return navigator.locks
+    ? navigator.locks.request("sepol.feedback.author.v1", () => authorHeaders(true))
+    : authorHeaders(true);
+}
+
+function feedbackItem(row) {
+  const location = row.neighborhood
+    ? `<span class="feedback-place">${icon("map-pin")}${esc(row.neighborhood)}</span>`
+    : `<small>정책 적용 지역 ${esc(row.region)}</small>`;
+  const policy = row.policy_source_url
+    ? outLink(row.policy_source_url, esc(row.policy_title))
+    : esc(row.policy_title);
+  return `<article class="feedback-item">${location}<small>정책 발표·공고일 ${date(row.policy_published_at)}</small><h2>${esc(row.title)}</h2><p>${esc(row.content)}</p><div class="button-row"><span class="small">관련 정책 · ${policy}</span>${row.can_delete
+    ? `<button class="text-button small delete-feedback" data-action="delete-feedback" data-id="${esc(row.id)}">내 의견 삭제</button>`
+    : ""}</div></article>`;
+}
+
+function opinions() {
+  const intro = `<div class="page-top"><h1>정책을 읽고, 의견을 나눠요</h1><button class="button primary write-button" data-view="write">의견 남기기</button></div><p class="section-intro">이곳에 남긴 의견은 세폴의 시민 의견 목록에 공개돼요<br>행정기관 접수는 별도로 해야 해요</p>`;
+  if (state.feedbackError)
+    return intro + `<p class="notice warning">${prose(state.feedbackError)} <button class="text-button" data-action="retry-feedback">다시 불러오기</button></p>`;
+  if (!state.feedback) return intro + '<p role="status">실제 접수 의견을 불러오고 있어요</p>';
+  const { items, total, limit } = state.feedback;
+  return intro + (items.length
+    ? `<p class="small">총 ${total}건${total > limit ? ` 중 최근 ${limit}건` : ""}</p><div class="feedback-list">${items.map(feedbackItem).join("")}</div>`
+    : empty("아직 접수된 시민 의견이 없어요", "첫 번째 의견을 남겨 주세요"));
+}
+
+let feedbackLoad = 0;
 async function loadFeedback() {
+  const request = ++feedbackLoad;
   state.feedbackError = "";
   try {
-    state.feedback = await requestJSON("/app/api/feedback");
-  } catch (e) {
-    state.feedbackError = e.message;
+    const response = await requestJSON("/app/api/feedback", { headers: authorHeaders() });
+    if (request !== feedbackLoad) return;
+    state.feedback = response;
+  } catch (error) {
+    if (request !== feedbackLoad) return;
+    state.feedbackError = error.message;
   }
   if (state.view === "opinions") render();
 }
-function write() {
-  if (state.receipt)
-    return `<section class="receipt">${state.receipt.neighborhood ? `<span class="feedback-place">${icon("map-pin")}${esc(state.receipt.neighborhood)}</span>` : ""}<h1>의견을 저장했어요</h1><p>${esc(state.receipt.policyTitle)}</p><code>접수 번호: ${esc(state.receipt.id)}</code><div class="button-row"><button class="button primary" data-view="opinions">접수 의견 보기</button><button class="button" data-action="write-again">다른 의견 남기기</button></div><p class="small">행정기관 민원 접수와는 별개입니다</p></section>`;
-  return `<h1>어떤 점을 더 살펴야 할까요?</h1><p class="section-intro">정책을 선택하고 지역에서 필요한 변화나 확인할 점을 구체적으로 적어 주세요</p><div class="feedback-layout"><form class="feedback-form" id="feedback-form"><div class="feedback-location"><div class="feedback-location-heading">${icon("map-pin")}<strong>의견을 남기는 동네</strong></div><p>위치를 허용하면 현재 읍·면·동을 확인하고, 제출한 의견 위에 동네 이름을 공개해요<br>정확한 좌표는 기기에서만 사용해요</p><button class="button compact" type="button" data-action="locate-feedback">현재 위치 확인</button><p id="feedback-location-status" class="location-status" role="status" aria-live="polite"></p></div><fieldset class="feedback-fields" aria-label="의견 내용" disabled><label for="feedback-policy">관련된 실제 정책<select id="feedback-policy" name="policyId" required><option value="">정책 선택</option>${policies()
-    .map(
-      (p) =>
-        `<option value="${p.id}" ${state.selected === p.id ? "selected" : ""}>${esc(p.title)}</option>`,
-    )
-    .join(
-      "",
-    )}</select><small>선택한 정책의 원문을 의견에 연결해요</small></label><label for="feedback-title">의견 제목<input id="feedback-title" name="title" minlength="5" maxlength="80" placeholder="5~80자로 구체적으로 적어 주세요" required autocomplete="off"></label><label for="feedback-content">자세한 의견<textarea id="feedback-content" name="content" minlength="15" maxlength="1500" placeholder="누구에게 어떤 영향이 있는지, 어떤 내용을 더 확인하면 좋을지 알려 주세요" required></textarea><small>15~1,500자 · 이름이나 연락처, 상세 주소 등은 적지 마세요</small></label><label class="consent"><input type="checkbox" name="consent" required><span>동네 이름과 의견을 이 서비스에 공개하고 저장하는 데 동의해요</span></label><p id="form-status" class="form-status" role="status" aria-live="polite"></p><button class="button primary write-button" type="submit">${icon("send")}의견 저장하기</button></fieldset></form><aside class="writing-note"><h2>근거 있는 이야기로 이어가요</h2><ul><li>공식 원문과 적용 지역을 먼저 살펴보세요</li><li>시행이 확정된 내용과 앞으로의 계획을 구분해 주세요</li><li>정책에 대한 평가와 개인적인 경험을 구분해 적어 주세요</li><li>다른 사람을 식별할 수 있는 정보는 공개하지 마세요</li></ul><p>이 서비스는 정부·지자체의 공식 민원 창구가 아닙니다</p></aside></div>`;
-}
-async function locateFeedback(button) {
-  const form = button.form;
-  const status = form.querySelector("#feedback-location-status");
+
+async function deleteFeedback(button) {
+  if (button.disabled || !window.confirm("내 의견을 삭제할까요? 삭제한 글은 되돌릴 수 없어요")) return;
   button.disabled = true;
-  status.textContent = "현재 위치를 확인하는 중…";
   try {
-    const { region, accuracy } = await locateNeighborhood();
-    if (!region) throw Error("현재 위치의 행정동을 확인하지 못했어요");
-    if (accuracy > 1500)
-      throw Error("위치 오차가 커요 · 위치 서비스 설정을 확인하고 다시 시도해 주세요");
-    if (!form.isConnected) return;
-    form.dataset.neighborhoodCode = region.code;
-    status.textContent = region.label;
-    status.classList.add("feedback-place");
-    form.querySelector(".feedback-fields").disabled = false;
-    button.hidden = true;
-    form.querySelector("#feedback-policy").focus();
+    await requestJSON("/app/api/feedback/" + encodeURIComponent(button.dataset.id), {
+      method: "DELETE",
+      headers: authorHeaders(),
+    });
+    if (state.view === "opinions") await loadFeedback();
+    toast("의견을 삭제했어요");
   } catch (error) {
-    status.textContent =
-      error.code === 1
-        ? "브라우저에서 위치 권한을 허용한 뒤 다시 시도해 주세요"
-        : error.code === 2 || error.code === 3
-          ? "현재 위치를 확인할 수 없어요 · 기기의 위치 서비스를 확인해 주세요"
-          : error.message;
+    toast(error.message);
     button.disabled = false;
   }
 }
+
+function opinionPolicies() {
+  const list = [...(state.latestNotices?.items || []), ...(state.catalog?.localNotices || []), ...policies()];
+  if (state.extraPolicy) list.unshift(state.extraPolicy);
+  return [...new Map(list.map((p) => [p.id, p])).values()];
+}
+function policyOptions(selected, query = "") {
+  const q = query.trim().toLowerCase();
+  return '<option value="">정책 선택</option>' + opinionPolicies()
+    .filter((p) => p.id === selected || `${p.title} ${p.region}`.toLowerCase().includes(q))
+    .map((p) => `<option value="${esc(p.id)}" ${p.id === selected ? "selected" : ""}>${esc(p.region)} · ${esc(p.title)}</option>`)
+    .join("");
+}
+function updatePolicyOptions(form, initial = "") {
+  if (!form) return;
+  const select = form.elements.policyId;
+  select.innerHTML = policyOptions(select.value || initial, form.elements.policySearch.value);
+  updatePolicyDate(form);
+}
+function updatePolicyDate(form) {
+  const selected = opinionPolicies().find((p) => p.id === form.elements.policyId.value);
+  form.querySelector("#feedback-policy-date").textContent = selected
+    ? "정책 발표·공고일 " + date(selected.publishedAt)
+    : "선택한 정책의 발표·공고일을 함께 표시해요";
+}
+
+function write() {
+  if (state.receipt) {
+    return `<section class="receipt">${state.receipt.neighborhood ? `<span class="feedback-place">${icon("map-pin")}${esc(state.receipt.neighborhood)}</span>` : ""}<h1>의견을 저장했어요</h1><p>${esc(state.receipt.policyTitle)}</p><p class="small">정책 발표·공고일 ${date(state.receipt.publishedAt)}</p><code>접수 번호: ${esc(state.receipt.id)}</code><div class="button-row"><button class="button primary" data-view="opinions">접수 의견 보기</button><button class="button" data-action="write-again">다른 의견 남기기</button></div></section>`;
+  }
+  const selected = opinionPolicies().find((p) => p.id === state.selected);
+  return `<h1>시민 의견 남기기</h1><p class="section-intro">관련 정책과 공개할 지역을 골라 주세요</p>
+    <div class="feedback-layout"><form class="feedback-form" id="feedback-form">
+      <div class="feedback-location"><div class="feedback-location-heading">${icon("map-pin")}<strong>의견을 남기는 지역</strong></div>
+        <p>선택한 읍·면·동 이름이 의견 위에 공개돼요</p>
+        <button class="button compact" type="button" data-action="choose-feedback-location">지역 직접 선택</button>
+        <p id="feedback-location-status" class="location-status" role="status" aria-live="polite"></p>
+      </div>
+      <fieldset class="feedback-fields" aria-label="의견 내용">
+        <label for="feedback-policy-search">관련 정책 검색<input id="feedback-policy-search" name="policySearch" type="search" placeholder="예: 거제, 김천, 돌봄"></label>
+        <label for="feedback-policy">관련 정책<select id="feedback-policy" name="policyId" required>${policyOptions(state.selected)}</select><small id="feedback-policy-date">${selected ? "정책 발표·공고일 " + date(selected.publishedAt) : "선택한 정책의 발표·공고일을 함께 표시해요"}</small></label>
+        <label for="feedback-title">의견 제목<input id="feedback-title" name="title" minlength="5" maxlength="80" placeholder="5~80자로 구체적으로 적어 주세요" required autocomplete="off"></label>
+        <label for="feedback-content">자세한 의견<textarea id="feedback-content" name="content" minlength="15" maxlength="1500" placeholder="누구에게 어떤 영향이 있는지, 어떤 내용을 더 확인하면 좋을지 알려 주세요" required></textarea><small>15~1,500자 · 이름이나 연락처, 상세 주소 등은 적지 마세요</small></label>
+        <label class="consent"><input type="checkbox" name="consent" required><span>지역 이름과 의견을 이 서비스에 공개하고 저장하는 데 동의해요</span></label>
+        <p id="form-status" class="form-status" role="status" aria-live="polite"></p><button class="button primary write-button" type="submit">${icon("send")}의견 저장하기</button>
+      </fieldset>
+    </form><aside class="writing-note"><h2>공개와 삭제</h2><p>내 의견은 작성한 브라우저에서 삭제할 수 있어요</p><p>브라우저의 사이트 데이터를 지우면 삭제 권한도 사라져요</p><p>공식 의견 제출은 관련 정책의 원문에서 확인해 주세요</p></aside></div>`;
+}
+
+function chooseFeedbackLocation(form) {
+  neighborhood.open((region) => {
+    if (!form.isConnected) return;
+    form.dataset.neighborhoodCode = region.code;
+    const status = form.querySelector("#feedback-location-status");
+    status.textContent = region.label;
+    status.classList.add("feedback-place");
+    form.querySelector('[data-action="choose-feedback-location"]').textContent = "지역 변경";
+    form.querySelector("#form-status").textContent = "";
+  });
+}
+
+function startWriting(id) {
+  state.selected = id;
+  state.receipt = null;
+  state.requestId = crypto.randomUUID();
+  go("write");
+}
+
+async function loadSelectedNotice() {
+  const id = state.selected;
+  const form = $("#feedback-form");
+  if (!form || !/^local-\d+$/.test(id ?? "") || opinionPolicies().some((p) => p.id === id)) return;
+  try {
+    const notice = await requestJSON("/app/api/local-notices/" + encodeURIComponent(id));
+    if (!form.isConnected) return;
+    state.extraPolicy = notice;
+    updatePolicyOptions(form, id);
+  } catch {
+    if (form.isConnected) form.querySelector("#form-status").textContent = "연결된 공고를 확인하지 못했어요 정책 목록에서 다시 골라 주세요";
+  }
+}
+
+function activateView() {
+  if (!state.catalog) return;
+  if (state.view === "opinions") loadFeedback();
+  if (state.view === "discover" || state.view === "write") {
+    if (!state.latestNotices) loadLatestNotices();
+    if (state.view === "write") loadSelectedNotice();
+  }
+}
+
 function details(id) {
   const p = policies().find((p) => p.id === id);
   if (!p) return;
@@ -450,7 +627,7 @@ function go(view) {
   render();
   window.scrollTo({ top: 0, behavior: "instant" });
   $("#workspace").focus({ preventScroll: true });
-  if (view === "opinions") loadFeedback();
+  activateView();
 }
 async function requestJSON(url, options = {}) {
   const r = await fetch(url, {
@@ -478,7 +655,7 @@ async function load() {
     state.error = e.message;
   }
   render();
-  if (state.view === "opinions") loadFeedback();
+  activateView();
 }
 function csv() {
   const rows = policies().filter((p) => state.saved.has(p.id));
@@ -530,6 +707,7 @@ document.addEventListener("click", (e) => {
   );
   if (!b) return;
   e.preventDefault();
+  if (b.dataset.view === "write") return startWriting(null);
   if (b.dataset.view) return go(b.dataset.view);
   if (b.dataset.detail) return details(b.dataset.detail);
   if (b.dataset.save) {
@@ -548,13 +726,15 @@ document.addEventListener("click", (e) => {
     sync();
     return render();
   }
-  if (b.dataset.write) {
-    state.selected = b.dataset.write;
-    state.receipt = null;
-    return go("write");
-  }
+  if (b.dataset.write) return startWriting(b.dataset.write);
   const action = b.dataset.action;
-  if (action === "locate-feedback") return locateFeedback(b);
+  if (action === "choose-feedback-location") return chooseFeedbackLocation(b.form);
+  if (action === "delete-feedback") return deleteFeedback(b);
+  if (action === "refresh-local-notices") return loadLatestNotices();
+  if (action === "more-local-notices") {
+    state.localLimit += 12;
+    return drawLocalList();
+  }
   if (action === "close-dialog") $("#policy-dialog").close();
   if (action === "reload") load();
   if (action === "toggle-local") {
@@ -568,13 +748,17 @@ document.addEventListener("click", (e) => {
   if (action === "csv") csv();
   if (action === "print") window.print();
   if (action === "write-again") {
-    state.receipt = null;
-    state.requestId = crypto.randomUUID();
-    go("write");
+    startWriting(null);
   }
 });
 let searchTimer;
 document.addEventListener("input", (e) => {
+  if (e.target.id === "local-notice-search") {
+    state.localSearch = e.target.value;
+    state.localLimit = 12;
+    drawLocalList();
+  }
+  if (e.target.id === "feedback-policy-search") updatePolicyOptions(e.target.form);
   if (e.target.id === "policy-search") {
     state.search = e.target.value;
     clearTimeout(searchTimer);
@@ -595,7 +779,7 @@ document.addEventListener("change", (e) => {
     sync();
     render();
   }
-  if (e.target.id === "feedback-policy") state.selected = e.target.value;
+  if (e.target.id === "feedback-policy") updatePolicyDate(e.target.form);
 });
 document.addEventListener("submit", async (e) => {
   if (e.target.id !== "feedback-form") return;
@@ -604,13 +788,18 @@ document.addEventListener("submit", async (e) => {
     data = new FormData(form),
     button = form.querySelector("[type=submit]"),
     status = $("#form-status");
-  if (!form.dataset.neighborhoodCode || button.disabled) return;
+  if (button.disabled) return;
+  if (!form.dataset.neighborhoodCode) {
+    status.textContent = "의견을 남길 지역을 골라 주세요";
+    form.querySelector('[data-action="choose-feedback-location"]').focus();
+    return;
+  }
   button.disabled = true;
   status.textContent = "저장 중…";
   try {
     const result = await requestJSON("/app/api/feedback", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...await authorHeadersForWrite(), "Content-Type": "application/json" },
       body: JSON.stringify({
         policyId: data.get("policyId"),
         title: data.get("title"),
@@ -637,6 +826,9 @@ window.addEventListener("popstate", () => {
   state.region = p.get("region") || "all";
   state.selected = p.get("policy");
   render();
-  if (state.view === "opinions") loadFeedback();
+  activateView();
 });
 load().then(() => neighborhood.start());
+setInterval(() => {
+  if (!document.hidden && state.view === "discover") loadLatestNotices();
+}, 120000);
