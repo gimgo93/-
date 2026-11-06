@@ -41,8 +41,7 @@
       "locationNote": "원문은 가평군 전역을 특별방제구역으로 지정할 계획이라고 설명합니다. 지도점은 군청이나 방제 작업장이 아닌 가평군의 대표 위치입니다.",
       "latitude": 37.8314,
       "longitude": 127.5098,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.8314,127.5098,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-d74a24db",
@@ -83,8 +82,7 @@
       "locationNote": "원문은 안산시 상록구 본오동 일원의 옛 안산시화매립지를 조성지로 명시합니다. 정확한 경계 좌표가 없어 본오동 대표 위치를 표시했습니다.",
       "latitude": 37.2928744,
       "longitude": 126.8668397,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.2928744,126.8668397,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-886a3fb0",
@@ -142,8 +140,7 @@
         "label": "34억 원",
         "amountKRW": 3400000000,
         "note": "원문에 기재된 세 교량 총사업비(발표 기준)"
-      },
-      "earthUrl": "https://earth.google.com/web/@37.4916,127.4875,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      }
     },
     {
       "id": "policy-27d41470",
@@ -170,8 +167,7 @@
       "locationNote": "정책 대상은 경기도 소방 현장 전반입니다. 의정부 북부청사는 발표 장소이므로 정책 지점으로 표시하지 않았습니다.",
       "latitude": null,
       "longitude": null,
-      "budget": null,
-      "earthUrl": null
+      "budget": null
     },
     {
       "id": "policy-3e9ee07a",
@@ -238,8 +234,7 @@
       "locationNote": "원문에 수원역·기흥역·대화역 등이 비상수송 거점의 예시로 제시되어 있습니다. 세 곳은 전체 운행 노선이나 전체 거점 목록이 아닙니다.",
       "latitude": 37.2655559,
       "longitude": 127.0001841,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.2655559,127.0001841,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-d05a1418",
@@ -266,8 +261,7 @@
       "locationNote": "경기도 성실납세자를 위한 지원이며 협약기관은 여러 지역에 분산되어 있습니다. 특정 도청·시설 한 점으로 적용 범위를 표시하지 않았습니다.",
       "latitude": null,
       "longitude": null,
-      "budget": null,
-      "earthUrl": null
+      "budget": null
     },
     {
       "id": "policy-e86418e9",
@@ -308,8 +302,7 @@
       "locationNote": "원문은 시흥을 피지컬 AI 확산의 거점으로 설명합니다. 선포식 장소와 센터의 주소가 같은지 확인하지 않아 시흥시 대표 위치를 표시했습니다.",
       "latitude": 37.3798891,
       "longitude": 126.8032255,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.3798891,126.8032255,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-6255fe5c",
@@ -350,8 +343,7 @@
       "locationNote": "원문에 분당서울대학교병원에 감염병전문병원을 설치하는 계획이 명시되어 있습니다. 지도는 기존 병원 거점이며 경기도 전체 감염병 정책의 경계가 아닙니다.",
       "latitude": 37.3492691,
       "longitude": 127.1241351,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.3492691,127.1241351,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-4041480a",
@@ -392,8 +384,7 @@
       "locationNote": "원문은 포천천·수입천·명덕천 등 하천부지를 대상으로 설명합니다. 구간 경계가 제공되지 않아 포천시 대표 위치를 표시했습니다.",
       "latitude": 37.8948267,
       "longitude": 127.2007295,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.8948267,127.2007295,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-8d320827",
@@ -420,8 +411,7 @@
       "locationNote": "도민과 도내 학습공동체 등 사업별 대상을 설명하는 광역 정책입니다. 지원기관의 주소를 정책 적용 지점으로 사용하지 않았습니다.",
       "latitude": null,
       "longitude": null,
-      "budget": null,
-      "earthUrl": null
+      "budget": null
     },
     {
       "id": "policy-9a185b30",
@@ -463,8 +453,7 @@
       "locationNote": "원문은 서울 연세대학교 백양누리를 시민 토론 행사장으로 명시합니다. 정확한 건물 좌표를 확인하지 않아 서대문구 대표 위치를 표시했습니다. 전국 의제의 적용 범위를 뜻하지 않습니다.",
       "latitude": 37.5790747,
       "longitude": 126.9367861,
-      "budget": null,
-      "earthUrl": "https://earth.google.com/web/@37.5790747,126.9367861,50a,3000d,35y,0h,0t,0r/data=OgMKATA"
+      "budget": null
     },
     {
       "id": "policy-6622fa53",
@@ -492,8 +481,7 @@
       "locationNote": "도입한 기관·시설에서 사용하는 전국 단위 서비스입니다. 원문에 개별 시설 목록이 없어 임의의 위치를 표시하지 않았습니다.",
       "latitude": null,
       "longitude": null,
-      "budget": null,
-      "earthUrl": null
+      "budget": null
     }
   ]
 }

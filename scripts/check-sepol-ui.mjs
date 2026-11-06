@@ -78,19 +78,13 @@ try {
     () => document.querySelectorAll(".leaflet-tile-loaded").length > 0,
     { timeout: 15000 },
   );
-  assert.ok(
-    await page.$('.map-detail a[href^="https://earth.google.com/web/@"]'),
-  );
+  await page.waitForSelector(".notice-map-marker");
+  assert.ok(await page.$(".map-detail [data-detail]"));
   await page.screenshot({
     path: path.join(output, "sepol-map-desktop.png"),
     fullPage: true,
   });
-  results.push("실제 지도 타일·정책 선택·Google Earth 링크");
-  const kml = await page.evaluate(
-    async () => await fetch("/app/api/policies.kml").then((r) => r.text()),
-  );
-  assert.equal((kml.match(/<Placemark>/g) || []).length, 11);
-  results.push("Google Earth KML 11개 위치");
+  results.push("실제 지도 타일·정책 선택·지자체 입법예고 핀");
   assert.equal(await page.$("nav [data-view=sources]"), null);
   assert.equal(await page.$(".map-list-note"), null);
   await page.click(".site-footer [data-view=sources]");
@@ -113,6 +107,11 @@ try {
   );
   await page.click("nav [data-view=discover]");
   await page.waitForSelector("#latest-notice-list .local-notice");
+  assert.equal(await page.$$("main input[type=search]").then((fields) => fields.length), 1);
+  assert.equal(await page.$(".hero-facts"), null);
+  assert.equal(await page.$eval(".site-footer span", (e) => e.textContent), "정책 제안 & 정책 비교");
+  await page.type("#local-notice-search", "가평");
+  assert.match(await page.$eval("#local-notice-list .policy-card", (e) => e.textContent), /가평/);
   assert.equal(await page.$$("#latest-notice-list .local-notice").then((a) => a.length), 6);
   for (const city of ["거제", "상주", "김천"]) {
     await page.$eval("#local-notice-search", (input, value) => {

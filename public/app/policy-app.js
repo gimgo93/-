@@ -1,6 +1,5 @@
 import { setupNeighborhood } from "./neighborhood-ui.js?v=7";
 import { coverageFor } from "./neighborhood.js?v=4";
-import { earthURL as earth } from "./earth-link.js";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
   String(v ?? "").replace(
@@ -96,26 +95,25 @@ function toast(message) {
 function policies() {
   return state.catalog?.policies || [];
 }
+const newestFirst = (a, b) => b.publishedAt.localeCompare(a.publishedAt);
+const inNeighborhood = (p) =>
+  !neighborhood.current || !localOnly || !!coverageFor(p, neighborhood.current);
+const policyMatches = (p, query) =>
+  [p.title, p.summary, p.region, p.audience, p.sourceTitle].join(" ").toLowerCase().includes(query);
 function filtered() {
   const q = state.search.trim().toLowerCase();
   return policies()
     .filter(
       (p) =>
-        (!neighborhood.current ||
-          !localOnly ||
-          !!coverageFor(p, neighborhood.current)) &&
+        inNeighborhood(p) &&
         (state.category === "all" || p.category === state.category) &&
         (state.region === "all" ||
           (state.region === "nationwide"
             ? p.geographyType === "nationwide"
             : p.region.includes(state.region))) &&
-        (!q ||
-          [p.title, p.summary, p.region, p.audience, p.sourceTitle]
-            .join(" ")
-            .toLowerCase()
-            .includes(q)),
+        policyMatches(p, q),
     )
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    .sort(newestFirst);
 }
 function sync(push = false) {
   const p = new URLSearchParams({ view: state.view });
@@ -173,8 +171,8 @@ function card(p) {
   return `<article class="policy-card"><div class="card-top">${badge(p)}<span class="status">${esc(p.status)}</span></div><h3><button data-detail="${p.id}">${esc(p.title)}</button></h3><p class="card-summary">${prose(p.summary)}</p><div class="card-region">${icon("map-pin")}<span>${esc(p.region)}</span></div>${neighborhood.current ? `<p class="coverage-label">${esc(coverageFor(p, neighborhood.current) || "다른 지역의 정책")}</p>` : ""}<div class="card-meta"><span>${esc(p.sourceName)} / ${date(p.publishedAt)}</span><span>원문 확인 ${esc(p.reviewedAt)} / 공공누리 제1유형</span></div><div class="card-actions"><button class="save-button" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "+ 비교에 담기"}</button>${p.locations.length ? `<a href="?view=map&policy=${p.id}" data-map="${p.id}">지도에서 보기</a>` : `<button class="text-button small" data-detail="${p.id}">적용 범위 확인</button>`}</div></article>`;
 }
 function discover() {
-  const rows = filtered();
-  return `<section class="hero"><div><h1>${neighborhood.current ? esc(neighborhood.current.town) + "에서 시작하는<br>우리 동네 정책 탐색" : "우리 동네 정책을<br>근거부터 살펴보세요"}</h1><p>무엇을 바꾸려는 정책인지, 누구를 위한 것인지<br>확인한 공개자료를 쉽게 읽고 지역과 함께 살펴보세요</p><div class="button-row"><button class="button primary" data-view="map">${icon("map-pin")}정책 지도 열기</button></div></div><dl class="hero-facts"><div><dt>확인한 정책·사업</dt><dd>${policies().length}<small>건</small></dd></div><div><dt>공식 원문 기관</dt><dd>2<small>개</small></dd></div><div><dt>지도 위치·거점</dt><dd>${policies().reduce((n, p) => n + p.locations.length, 0)}<small>곳</small></dd></div></dl></section>${scopeNote()}${filters()}<div class="result-heading"><h2>검토한 정책 <span class="muted">${rows.length}건</span></h2><span class="small">발표일 최신순</span></div>${rows.length ? `<div class="policy-grid">${rows.map(card).join("")}</div>` : empty("조건에 맞는 정책이 없어요", "다른 검색어나 분야·지역을 선택해 주세요")}<section class="review-notes"><h2>정책의 상태까지 함께 읽으세요</h2><p class="small">발표 계획은 완료된 사업과 다르고, 행사 장소는 정책 전체의 적용 지역이 아닙니다<br>각 정책의 ‘확인할 점’과 위치 판단 근거를 열어보세요</p></section>${localDirectory()}`;
+  const rows = policies().filter(inNeighborhood).sort(newestFirst);
+  return `<section class="hero"><div><h1>${neighborhood.current ? esc(neighborhood.current.town) + "에서 시작하는<br>우리 동네 정책 탐색" : "우리 동네 정책을<br>근거부터 살펴보세요"}</h1><p>무엇을 바꾸려는 정책인지, 누구를 위한 것인지<br>확인한 공개자료를 쉽게 읽고 지역과 함께 살펴보세요</p><div class="button-row"><button class="button primary" data-view="map">${icon("map-pin")}정책 지도 열기</button></div></div></section>${scopeNote()}${neighborhoodScope()}<div class="result-heading"><h2>검토한 정책 <span class="muted">${rows.length}건</span></h2><span class="small">발표일 최신순</span></div>${rows.length ? `<div class="policy-grid">${rows.map(card).join("")}</div>` : empty("조건에 맞는 정책이 없어요", "다른 검색어나 분야·지역을 선택해 주세요")}<section class="review-notes"><h2>정책의 상태까지 함께 읽으세요</h2><p class="small">발표 계획은 완료된 사업과 다르고, 행사 장소는 정책 전체의 적용 지역이 아닙니다<br>각 정책의 ‘확인할 점’과 위치 판단 근거를 열어보세요</p></section>${localDirectory()}`;
 }
 function empty(
   title = "아직 표시할 자료가 없어요",
@@ -212,17 +210,17 @@ function mapData() {
 }
 function mapDetail(p) {
   if (!p) return "<p>지도에서 지역이나 정책을 선택해 주세요</p>";
-  return `${badge(p)}<h2>${esc(p.title)}</h2><p>${prose(p.summary)}</p><p><strong>원문이 설명한 지역</strong> ${esc(p.region)}</p><p class="small">${prose(p.locationEvidence)}</p><div class="button-row"><button class="button compact" data-detail="${p.id}">근거·위치 기준 보기</button>${outLink(earth(p.locations[0]), "Google Earth로 열기", "button compact")}<a class="button compact" href="/app/api/policies.kml?ids=${encodeURIComponent(p.id)}">이 정책 KML</a><button class="button compact" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button></div>`;
+  return `${badge(p)}<h2>${esc(p.title)}</h2><p>${prose(p.summary)}</p><p><strong>원문이 설명한 지역</strong> ${esc(p.region)}</p><p class="small">${prose(p.locationEvidence)}</p><div class="button-row"><button class="button compact" data-detail="${p.id}">근거·위치 기준 보기</button><button class="button compact" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button></div>`;
 }
 function areaDetail(area) {
-  return `<h2>${esc(area.label)} 입법예고 ${area.notices.length}건</h2><p class="small">지자체 대표 위치 · 공고별 위치는 원문에서 확인해 주세요</p><div class="button-row">${outLink(earth(area), "대표 위치를 Google Earth로 열기", "button compact")}</div><div class="map-notice-results">${area.notices.map((notice) => noticeCard(notice)).join("")}</div>`;
+  return `<h2>${esc(area.label)} 입법예고 ${area.notices.length}건</h2><p class="small">지자체 대표 위치 · 공고별 위치는 원문에서 확인해 주세요</p><div class="map-notice-results">${area.notices.map((notice) => noticeCard(notice)).join("")}</div>`;
 }
 function mapView({ rows, groups, area, policy }) {
   const noticeCount = groups.reduce((sum, group) => sum + group.notices.length, 0);
   const choices = rows.map((p) => `<button class="map-choice" data-map-select="${esc(p.id)}" aria-pressed="${policy?.id === p.id}"><strong>${esc(p.title)}</strong><span>${esc(p.region)}</span></button>`).join("");
   const areas = groups.map((g) => `<button class="map-choice" data-map-select="${esc(g.id)}" aria-pressed="${area?.id === g.id}"><strong>${esc(g.label)}</strong><span>입법예고 ${g.notices.length}건</span></button>`).join("");
   const list = `${areas ? `<h2>지자체 입법예고 · ${noticeCount}건</h2>${areas}` : ""}${choices ? `<h2>검토한 정책 · ${rows.length}건</h2>${choices}` : ""}`;
-  return `<div class="page-top"><h1>어디에 닿는 정책일까요?</h1><div class="button-row"><button class="button" data-action="map-overview">표시 지역 전체 보기</button><a class="button" href="/app/api/policies.kml">${icon("download")}검토한 정책 KML</a></div></div><p class="section-intro">보라색 숫자에 묶인 지자체 입법예고 ${noticeCount}건을 확인할 수 있어요</p>${filters()}<div class="map-layout"><div class="map-list" aria-label="지도에서 볼 지역과 정책">${list || empty("지도에 표시할 자료가 없어요", "다른 검색어나 필터를 선택해 주세요")}</div><section class="map-panel"><div id="policy-map" class="map-canvas" role="region" aria-label="공개 정책과 지자체 입법예고 지도"></div><div class="map-caption" id="map-caption">보라: 지자체 대표 위치 · 숫자는 공고 건수<br>파랑: 행정구역 대표 위치 / 초록: 시설·역 주변 / 주황: 행사 지역 · 사업 경계 표시 제외 <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">지도 오류 제보</a></div><div class="map-detail">${area ? areaDetail(area) : mapDetail(policy || rows[0])}</div></section></div>`;
+  return `<div class="page-top"><h1>어디에 닿는 정책일까요?</h1><div class="button-row"><button class="button" data-action="map-overview">표시 지역 전체 보기</button></div></div><p class="section-intro">보라색 숫자에 묶인 지자체 입법예고 ${noticeCount}건을 확인할 수 있어요</p>${filters()}<div class="map-layout"><div class="map-list" aria-label="지도에서 볼 지역과 정책">${list || empty("지도에 표시할 자료가 없어요", "다른 검색어나 필터를 선택해 주세요")}</div><section class="map-panel"><div id="policy-map" class="map-canvas" role="region" aria-label="공개 정책과 지자체 입법예고 지도"></div><div class="map-caption" id="map-caption">보라: 지자체 대표 위치 · 숫자는 공고 건수<br>파랑: 행정구역 대표 위치 / 초록: 시설·역 주변 / 주황: 행사 지역 · 사업 경계 표시 제외 <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">지도 오류 제보</a></div><div class="map-detail">${area ? areaDetail(area) : mapDetail(policy || rows[0])}</div></section></div>`;
 }
 function updateMapSelection(id, html) {
   state.selected = id;
@@ -240,7 +238,7 @@ function mountMap({ rows, groups, area, policy }) {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   }).addTo(map);
   tile.once("tileerror", () => {
-    $("#map-caption")?.insertAdjacentHTML("beforeend", " <strong>배경 지도를 불러오지 못한 경우 위치 목록과 Google Earth 링크를 이용해 주세요</strong>");
+    $("#map-caption")?.insertAdjacentHTML("beforeend", " <strong>배경 지도를 불러오지 못하면 위치 목록에서 정책을 확인해 주세요</strong>");
   });
   const bounds = [];
   for (const p of rows) {
@@ -253,7 +251,7 @@ function mountMap({ rows, groups, area, policy }) {
         radius: selected ? 10 : 7, color, fillColor: color,
         fillOpacity: selected ? 0.9 : 0.55, weight: selected ? 3 : 2,
       }).addTo(map);
-      marker.bindPopup(`<strong>${esc(l.label)}</strong><span>${esc(p.title)}</span><p>${prose(l.note)}</p>${outLink(earth(l), "Google Earth로 열기")}`);
+      marker.bindPopup(`<strong>${esc(l.label)}</strong><span>${esc(p.title)}</span><p>${prose(l.note)}</p>`);
       marker.on("click", () => updateMapSelection(p.id, mapDetail(p)));
       bounds.push(point);
     }
@@ -298,8 +296,7 @@ function mountMap({ rows, groups, area, policy }) {
 
 function compare() {
   const rows = policies().filter((p) => state.saved.has(p.id));
-  const kml = `/app/api/policies.kml?ids=${encodeURIComponent(rows.map((p) => p.id).join(","))}`;
-  return `<div class="page-top"><div><h1>비교하고, 확인할 점을 남겨요</h1></div>${rows.length ? `<div class="button-row"><button class="button" data-action="csv">${icon("download")}비교 CSV</button><a class="button" href="${kml}">선택 정책 KML</a><button class="button" data-action="print">인쇄 / PDF</button></div>` : ""}</div><p class="section-intro">최대 4개 정책의 대상·지역·추진 상태·출처를 비교합니다 원문에 없는 효과 점수와 예산은 추정하지 않습니다</p>${
+  return `<div class="page-top"><div><h1>비교하고, 확인할 점을 남겨요</h1></div>${rows.length ? `<div class="button-row"><button class="button" data-action="csv">${icon("download")}비교 CSV</button><button class="button" data-action="print">인쇄 / PDF</button></div>` : ""}</div><p class="section-intro">최대 4개 정책의 대상·지역·추진 상태·출처를 비교합니다 원문에 없는 효과 점수와 예산은 추정하지 않습니다</p>${
     !rows.length
       ? empty(
           "비교할 정책을 담아 주세요",
@@ -340,7 +337,7 @@ function compare() {
   }<p class="review-notes policy-promise"><strong>없는 정책은 만들지 않습니다</strong></p>`;
 }
 function sourcesView() {
-  return `<h1>데이터와 지도 기준</h1><p class="section-intro">접근·가공 조건과 제공 상태를 확인해 실제 연동 자료와 원문 검토 자료를 구분했어요</p><div class="sources-grid">${state.catalog.sources.map((s) => `<article class="source-card"><h2>${esc(s.name)}</h2><span class="source-state">${esc(s.status)}</span><p>${prose(s.access)}</p><div class="button-row">${outLink(s.docs, "공식 안내")}${outLink(s.url, "자료 보기")}</div></article>`).join("")}</div><section class="method-section"><div class="result-heading"><div><h2>방금 공개된 보도자료</h2><p class="small">행정안전부의 공개 RSS 제목과 원문 링크를 검토한 정책 12건과 별도로 표시해요</p></div><button class="button compact" data-action="refresh-feed">${icon("refresh-cw")}목록 확인</button></div><div id="feed-result">${feedHTML()}</div></section><section class="method-section"><h2>정책을 가공한 기준</h2><ol><li>공식 원문의 공공누리 제1유형을 확인한 12건을 선별했습니다<br>공식 청원이나 주민이 작성한 의견으로 바꾸어 표시하지 않습니다</li><li>핵심 내용·대상·지역·추진 상태를 따로 정리했습니다<br>원문의 사실과 편집자의 판단을 구분하며, 요약은 원문을 대신하는 신청 안내가 아닙니다</li><li>예산·동의 수·심각도·성과 점수는 만들지 않았습니다<br>금액은 원문에서 확인한 경우에만 표시합니다</li><li>사업이 계획인지, 완료 발표인지, 조건부 대책인지 구분했습니다<br>과거 발표의 모집상태를 현재 진행 중으로 간주하지 않습니다</li><li>시민 의견은 실제 접수한 내용만 별도 DB에 저장합니다<br>이전 합성 예시 의견은 공개 목록과 API에서 제외했습니다</li></ol><p class="small">목록 검토일: ${esc(state.catalog.reviewedAt)} / ${prose(state.catalog.scopeNote)}</p><a href="/app/api/policies">가공된 정책 JSON 보기</a></section><section class="method-section"><h2>지도와 Google Earth 연결 기준</h2><ul><li>원문이 명시한 지역·역·시설명만 위치 검색에 사용했습니다<br>장소명이 모호하거나 검색 대상이 다르면 정확한 시설 위치로 채택하지 않았습니다</li><li>파랑은 행정구역 대표 위치, 초록은 시설·역 주변, 주황은 행사 지역입니다<br>정확한 사업 경계나 수혜 범위를 뜻하지 않습니다</li><li>전국·광역 정책은 청사 주소 한 점으로 표시하지 않습니다<br>행사장은 정책 전체의 적용 범위와 구분합니다</li><li>Google Earth 위치 링크와 KML의 이름·좌표·설명이 서로 연결됩니다<br>Google Earth에서 KML을 가져오면 여러 정책을 함께 볼 수 있습니다</li><li>배경 지도·좌표는 © OpenStreetMap contributors, ODbL입니다<br>장소 좌표는 Nominatim을 제한된 횟수로 조회·캐시했고, 실시간 주소 검색은 제공하지 않습니다</li></ul><div class="button-row">${outLink("https://www.openstreetmap.org/copyright", "지도 저작권")}${outLink("https://operations.osmfoundation.org/policies/nominatim/", "좌표 조회 이용 조건")}${outLink("https://developers.google.com/maps/documentation/earth/import-data#open_local_kml_files_in_google_earth", "Google Earth KML 안내")}<a href="/app/api/policies.kml">KML 다운로드</a></div></section>`;
+  return `<h1>데이터와 지도 기준</h1><p class="section-intro">접근·가공 조건과 제공 상태를 확인해 실제 연동 자료와 원문 검토 자료를 구분했어요</p><div class="sources-grid">${state.catalog.sources.map((s) => `<article class="source-card"><h2>${esc(s.name)}</h2><span class="source-state">${esc(s.status)}</span><p>${prose(s.access)}</p><div class="button-row">${outLink(s.docs, "공식 안내")}${outLink(s.url, "자료 보기")}</div></article>`).join("")}</div><section class="method-section"><div class="result-heading"><div><h2>방금 공개된 보도자료</h2><p class="small">행정안전부의 공개 RSS 제목과 원문 링크를 검토한 정책 12건과 별도로 표시해요</p></div><button class="button compact" data-action="refresh-feed">${icon("refresh-cw")}목록 확인</button></div><div id="feed-result">${feedHTML()}</div></section><section class="method-section"><h2>정책을 가공한 기준</h2><ol><li>공식 원문의 공공누리 제1유형을 확인한 12건을 선별했습니다<br>공식 청원이나 주민이 작성한 의견으로 바꾸어 표시하지 않습니다</li><li>핵심 내용·대상·지역·추진 상태를 따로 정리했습니다<br>원문의 사실과 편집자의 판단을 구분하며, 요약은 원문을 대신하는 신청 안내가 아닙니다</li><li>예산·동의 수·심각도·성과 점수는 만들지 않았습니다<br>금액은 원문에서 확인한 경우에만 표시합니다</li><li>사업이 계획인지, 완료 발표인지, 조건부 대책인지 구분했습니다<br>과거 발표의 모집상태를 현재 진행 중으로 간주하지 않습니다</li><li>시민 의견은 실제 접수한 내용만 별도 DB에 저장합니다<br>이전 합성 예시 의견은 공개 목록과 API에서 제외했습니다</li></ol><p class="small">목록 검토일: ${esc(state.catalog.reviewedAt)} / ${prose(state.catalog.scopeNote)}</p><a href="/app/api/policies">가공된 정책 JSON 보기</a></section><section class="method-section"><h2>지도 표시 기준</h2><ul><li>원문이 명시한 지역·역·시설명만 위치 검색에 사용했습니다<br>장소명이 모호하거나 검색 대상이 다르면 정확한 시설 위치로 채택하지 않았습니다</li><li>파랑은 행정구역 대표 위치, 초록은 시설·역 주변, 주황은 행사 지역입니다<br>정확한 사업 경계나 수혜 범위를 뜻하지 않습니다</li><li>전국·광역 정책은 청사 주소 한 점으로 표시하지 않습니다<br>행사장은 정책 전체의 적용 범위와 구분합니다</li><li>배경 지도·좌표는 © OpenStreetMap contributors, ODbL입니다<br>장소 좌표는 Nominatim을 제한된 횟수로 조회·캐시했고, 실시간 주소 검색은 제공하지 않습니다</li></ul><div class="button-row">${outLink("https://www.openstreetmap.org/copyright", "지도 저작권")}${outLink("https://operations.osmfoundation.org/policies/nominatim/", "좌표 조회 이용 조건")}</div></section>`;
 }
 function feedHTML() {
   if (state.feedLoading)
@@ -373,16 +370,21 @@ function noticeCard(p, showMap = false) {
 }
 
 function localNoticeList() {
-  const q = state.localSearch.trim().toLowerCase();
-  const rows = (state.catalog.localNotices || []).filter((p) =>
-    `${p.region} ${p.title} ${p.reference}`.toLowerCase().includes(q),
+  const query = state.localSearch.trim().toLowerCase();
+  const notices = (state.catalog.localNotices || []).filter((p) =>
+    `${p.region} ${p.mapArea?.label || ""} ${p.title} ${p.reference}`.toLowerCase().includes(query),
   );
-  return `<p class="small" role="status">${rows.length}건 · 공고일 최신순</p>${rows.length
-    ? `<div class="local-notice-grid">${rows.slice(0, state.localLimit).map((p) => noticeCard(p, true)).join("")}</div>`
-    : empty("일치하는 입법예고가 없어요", "다른 시·군·구나 정책명으로 검색해 보세요")}${rows.length > state.localLimit
-    ? '<button class="button" data-action="more-local-notices">공고 12건 더 보기</button>'
-    : ""}`;
+  const reviewed = query ? policies().filter((p) => policyMatches(p, query)).sort(newestFirst) : [];
+  if (query && !reviewed.length && !notices.length)
+    return empty("일치하는 정책이나 입법예고가 없어요", "다른 지역명이나 정책명으로 검색해 보세요");
+  return `${query ? `<p class="small" role="status">검색 결과 ${reviewed.length + notices.length}건</p>
+    <h3>검토한 정책 · ${reviewed.length}건</h3>
+    ${reviewed.length ? `<div class="policy-grid">${reviewed.map(card).join("")}</div>` : ""}
+    <h3>전국 지자체 입법예고 · ${notices.length}건</h3>` : `<p class="small" role="status">${notices.length}건 · 공고일 최신순</p>`}
+    ${notices.length ? `<div class="local-notice-grid">${notices.slice(0, state.localLimit).map((p) => noticeCard(p, true)).join("")}</div>` : ""}
+    ${notices.length > state.localLimit ? '<button class="button" data-action="more-local-notices">공고 12건 더 보기</button>' : ""}`;
 }
+
 function drawLocalList() {
   const list = $("#local-notice-list");
   if (list) list.innerHTML = localNoticeList();
@@ -399,7 +401,7 @@ function latestNoticeList() {
 }
 
 function localDirectory() {
-  return `<section class="local-directory"><div class="result-heading"><h2>전국 지자체 입법예고</h2></div><p class="small">거제·김천·상주를 비롯한 시·군·구가 공개한 조례·규칙 제정 및 개정안</p><label class="local-search" for="local-notice-search">지역·정책명 검색<input id="local-notice-search" type="search" value="${esc(state.localSearch)}" placeholder="예: 김천, 돌봄, 자전거"></label><div id="local-notice-list">${localNoticeList()}</div></section><section class="local-directory"><div class="result-heading"><h2>더 많은 정책</h2><button class="button compact" data-action="refresh-local-notices" ${state.latestLoading ? "disabled" : ""}>새로 확인</button></div><div id="latest-notice-list">${latestNoticeList()}</div></section>`;
+  return `<section class="local-directory"><div class="result-heading"><h2>전국 지자체 입법예고</h2></div><p class="small">거제·김천·상주를 비롯한 시·군·구가 공개한 조례·규칙 제정 및 개정안</p><label class="local-search" for="local-notice-search">정책·입법예고 검색<input id="local-notice-search" type="search" value="${esc(state.localSearch)}" placeholder="예: 김천, 돌봄, 자전거"></label><div id="local-notice-list">${localNoticeList()}</div></section><section class="local-directory"><div class="result-heading"><h2>더 많은 정책</h2><button class="button compact" data-action="refresh-local-notices" ${state.latestLoading ? "disabled" : ""}>새로 확인</button></div><div id="latest-notice-list">${latestNoticeList()}</div></section>`;
 }
 
 async function loadLatestNotices(refreshSource = false) {
@@ -602,7 +604,7 @@ function details(id) {
   if (!p) return;
   $("#dialog-title").textContent = p.title;
   $("#dialog-content").innerHTML =
-    `<article class="policy-detail">${badge(p)}<p class="lead">${prose(p.summary)}</p><dl class="detail-facts"><dt>정책·사업 대상</dt><dd>${esc(p.audience)}</dd><dt>적용 지역</dt><dd>${esc(p.region)}</dd><dt>발표 당시 상태</dt><dd>${esc(p.status)}</dd><dt>발표일</dt><dd>${date(p.publishedAt)}</dd><dt>원문 확인일</dt><dd>${esc(p.reviewedAt)}</dd><dt>원문 제목</dt><dd>${esc(p.sourceTitle)}</dd><dt>출처</dt><dd>${outLink(p.sourceUrl, esc(p.sourceName))}</dd><dt>이용 조건</dt><dd>${outLink(p.licenseUrl, "공공누리 제1유형 / 출처표시")}</dd><dt>원문 확인 사업비</dt><dd>${p.budget ? `${esc(p.budget.label)} — ${prose(p.budget.note)}` : "이번 원문 검토에서 확인하지 않았습니다"}</dd></dl><section class="detail-section"><h3>확인할 점</h3><p>${prose(p.statusNote)}</p></section><section class="detail-section"><h3>왜 이 위치에 표시했나요?</h3><p>${prose(p.locationEvidence)}</p>${p.locations.length ? p.locations.map((l) => `<div class="location-row"><strong>${esc(l.label)}</strong><small>${prose(l.note)}</small><small>좌표 ${l.latitude.toFixed(5)}, ${l.longitude.toFixed(5)} / OSM 지명 조회 결과</small><div class="button-row">${outLink(earth(l), "Google Earth로 열기")}${outLink(l.geoSourceUrl, "좌표 출처")}</div></div>`).join("") : "<p>정책의 대상이 전국 또는 광역 범위여서 임의의 지점 핀을 생성하지 않았습니다</p>"}</section><div class="button-row"><button class="button primary" data-write="${p.id}">이 정책에 의견 남기기</button><button class="button" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button>${p.locations.length ? `<a class="button" href="/app/api/policies.kml?ids=${p.id}">이 정책 KML</a>` : ""}</div><p class="small">직접 작성한 요약이며 공식 발표를 대체하지 않습니다 후속 고시·모집조건·운행 여부는 출처에서 확인해 주세요</p></article>`;
+    `<article class="policy-detail">${badge(p)}<p class="lead">${prose(p.summary)}</p><dl class="detail-facts"><dt>정책·사업 대상</dt><dd>${esc(p.audience)}</dd><dt>적용 지역</dt><dd>${esc(p.region)}</dd><dt>발표 당시 상태</dt><dd>${esc(p.status)}</dd><dt>발표일</dt><dd>${date(p.publishedAt)}</dd><dt>원문 확인일</dt><dd>${esc(p.reviewedAt)}</dd><dt>원문 제목</dt><dd>${esc(p.sourceTitle)}</dd><dt>출처</dt><dd>${outLink(p.sourceUrl, esc(p.sourceName))}</dd><dt>이용 조건</dt><dd>${outLink(p.licenseUrl, "공공누리 제1유형 / 출처표시")}</dd><dt>원문 확인 사업비</dt><dd>${p.budget ? `${esc(p.budget.label)} — ${prose(p.budget.note)}` : "이번 원문 검토에서 확인하지 않았습니다"}</dd></dl><section class="detail-section"><h3>확인할 점</h3><p>${prose(p.statusNote)}</p></section><section class="detail-section"><h3>왜 이 위치에 표시했나요?</h3><p>${prose(p.locationEvidence)}</p>${p.locations.length ? p.locations.map((l) => `<div class="location-row"><strong>${esc(l.label)}</strong><small>${prose(l.note)}</small><small>좌표 ${l.latitude.toFixed(5)}, ${l.longitude.toFixed(5)} / OSM 지명 조회 결과</small><div class="button-row">${outLink(l.geoSourceUrl, "좌표 출처")}</div></div>`).join("") : "<p>정책의 대상이 전국 또는 광역 범위여서 임의의 지점 핀을 생성하지 않았습니다</p>"}</section><div class="button-row"><button class="button primary" data-write="${p.id}">이 정책에 의견 남기기</button><button class="button" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id) ? "✓ 비교에 담음" : "비교에 담기"}</button></div><p class="small">직접 작성한 요약이며 공식 발표를 대체하지 않습니다 후속 고시·모집조건·운행 여부는 출처에서 확인해 주세요</p></article>`;
   if (!$("#policy-dialog").open) $("#policy-dialog").showModal();
 }
 function render() {

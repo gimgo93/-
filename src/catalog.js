@@ -1,6 +1,6 @@
 import snapshot from "../data/policy-catalog.json" with { type: "json" };
 import { XMLParser } from "fast-xml-parser";
-import { policyId, earthURL } from "./policy-tools.js";
+import { policyId } from "./policy-tools.js";
 
 export const FEED_URL =
   "https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1012";
@@ -65,7 +65,6 @@ export function getCatalog() {
   const policies = snapshot.policies.map((p) => ({
     ...p,
     id: policyId(p.sourceUrl),
-    earthUrl: earthURL(p),
   }));
   return {
     version: 2,

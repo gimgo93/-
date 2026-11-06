@@ -1,5 +1,5 @@
 import { getCatalog, readPublicFeed } from "./catalog.js";
-import { makeKML, validateFeedback } from "./policy-tools.js";
+import { validateFeedback } from "./policy-tools.js";
 import { findLocalNotice, localNotices, readLatestNotices } from "./policy-directory.js";
 const securityHeaders = {
   "Content-Security-Policy":
@@ -54,23 +54,6 @@ async function api(request, env, url, ctx) {
   }
   if (url.pathname === "/app/api/public-feed" && request.method === "GET")
     return json(await readPublicFeed(ctx));
-  if (url.pathname === "/app/api/policies.kml" && request.method === "GET") {
-    const selected = (url.searchParams.get("ids") || "")
-      .split(",")
-      .filter(Boolean);
-    const rows = selected.length
-      ? catalog.policies.filter((p) => selected.includes(p.id))
-      : catalog.policies;
-    return new Response(makeKML(rows), {
-      headers: {
-        ...securityHeaders,
-        "Content-Type": "application/vnd.google-earth.kml+xml; charset=utf-8",
-        "Content-Disposition":
-          'attachment; filename="public-policy-locations.kml"',
-        "Cache-Control": "no-store",
-      },
-    });
-  }
   if (["/app/api/dashboard", "/app/api/opinions"].includes(url.pathname))
     return json(
       {

@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import { XMLParser } from "fast-xml-parser";
 import { getCatalog, parseFeed } from "../src/catalog.js";
-import { makeKML, validateFeedback } from "../src/policy-tools.js";
+import { validateFeedback } from "../src/policy-tools.js";
 import { localNoticePolicy, parseLocalNotices } from "../src/local-notices.js";
 import {
   inGeometry,
@@ -38,10 +37,6 @@ test("reviewed official policies retain provenance and have no invented opinion 
     assert.ok(p.summary && p.region && p.statusNote && p.locationEvidence);
     assert.equal(p.cost, undefined);
     assert.equal(p.severity, undefined);
-    assert.equal(
-      p.earthUrl?.split("/@")[1]?.split(",").slice(0, 2).join(",") ?? null,
-      p.locations.length ? `${p.locations[0].latitude},${p.locations[0].longitude}` : null,
-    );
     for (const l of p.locations) {
       assert.ok(l.latitude >= 33 && l.latitude <= 39);
       assert.ok(l.longitude >= 124 && l.longitude <= 132);
@@ -51,24 +46,6 @@ test("reviewed official policies retain provenance and have no invented opinion 
   assert.equal(
     policies.find((p) => p.reviewKey === "mois-130555").locations.length,
     0,
-  );
-});
-test("KML includes every reviewed location, escapes text and omits unlocated national policy", () => {
-  const policies = getCatalog().policies;
-  const xml = makeKML(policies);
-  const doc = new XMLParser().parse(xml);
-  assert.equal(doc.kml.Document.Placemark.length, 11);
-  assert.equal(
-    doc.kml.Document.Placemark[0].Point.coordinates.split(",").length,
-    3,
-  );
-  assert.doesNotMatch(
-    makeKML(policies.filter((p) => p.reviewKey === "mois-130555")),
-    /<Placemark>/,
-  );
-  assert.match(
-    makeKML([{ ...policies[0], title: "A <script> & B" }]),
-    /A &lt;script&gt; &amp; B/,
   );
 });
 test("public RSS parsing excludes unapproved links and raw HTML", () => {

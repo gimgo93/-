@@ -19,13 +19,11 @@ sepol(search politics)은 실제 공식 발표를 읽기 쉽게 정리하고 적
 4. 경기데이터드림: https://data.gg.go.kr/portal/openapi/usagePage.do — 인증키 없이 sample은 5건 제한, 전체 정책 목록으로 사용하지 않는다.
 5. 서울시 RSS는 응답했지만 현재 확인 기사 대부분에 변경금지 조건이 있어 이번 가공 목록에서 제외했다. 정책브리핑 RSS는 2026-07-01 중단 공지를 확인해 사용하지 않았다.
 
-## 지도와 Google Earth
+## 정책 지도
 
 내장 지도는 로컬 배포 Leaflet 1.9.4와 OpenStreetMap 표준 타일을 사용한다. 일반적인 현재 화면 조회만 하며 타일 선다운로드·오프라인 지도 저장 기능은 없다. 지도에 OSM 저작권을 표시한다.
 
 지도에는 11개 표시 위치가 있다. 정확한 시설 주소·사업 경계가 확인되지 않으면 행정구역 대표 위치로 표시한다. 다의적인 교량 검색 결과와 행사장 검색 결과를 정확한 시설로 채택하지 않았다. 시흥의 행사장과 정책 센터의 주소를 동일시하지 않았다. 지도점별 원문 근거·좌표 출처·정밀도 설명을 보존한다.
-
-각 위치를 Google Earth의 좌표 중심 보기로 연결하고 다중 위치는 `application/vnd.google-earth.kml+xml` KML로 내보낸다. KML에는 요약·원문·확인일·좌표 해석이 함께 들어간다.
 
 공개 장소 좌표 캐시는 `data/public-location-cache.json`이다. 일회성 Nominatim 조회는 단일 실행·초당 1회 이하·결과 캐시 원칙을 지킨다. 시민 좌표나 사용자 주소를 Nominatim에 보내지 않는다. 정책: https://operations.osmfoundation.org/policies/nominatim/ . 애매한 결과는 수동으로 검토하고 채택하지 않는다.
 

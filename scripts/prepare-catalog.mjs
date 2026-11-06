@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { policyId, earthURL } from "../src/policy-tools.js";
+import { policyId } from "../src/policy-tools.js";
 const root = new URL("../", import.meta.url);
 const reviewed = JSON.parse(
   await fs.readFile(
@@ -123,7 +123,6 @@ const policies = reviewed.items.map((p) => {
             note: "원문에 기재된 세 교량 총사업비(발표 기준)",
           }
         : null,
-    earthUrl: locations[0] ? earthURL(locations[0]) : null,
   };
 });
 await fs.mkdir(new URL("data/", root), { recursive: true });

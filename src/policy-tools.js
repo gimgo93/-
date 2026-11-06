@@ -1,37 +1,14 @@
 import regionIndex from "../public/app/regions/index.json" with { type: "json" };
-export { earthURL } from "../public/app/earth-link.js";
 
 const neighborhoodLabels = new Map(
   regionIndex.regions.map(({ code, label }) => [code, label]),
 );
 
-export const escapeXML = (value) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (c) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&apos;",
-      })[c],
-  );
 export function policyId(url) {
   let hash = 2166136261;
   for (const c of String(url))
     hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
   return `policy-${(hash >>> 0).toString(16)}`;
-}
-export function makeKML(policies) {
-  const rows = policies.flatMap((p) =>
-    (p.locations || [])
-      .filter(
-        (l) => Number.isFinite(l.latitude) && Number.isFinite(l.longitude),
-      )
-      .map((l) => ({ p, l })),
-  );
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>공개 정책의 적용 지역과 거점</name><description>공식자료 기반. 대표 위치·시설·행사 지역을 각각 구분합니다. 사업 경계를 나타내지 않습니다. 좌표 © OpenStreetMap contributors (ODbL).</description>${rows.map(({ p, l }) => `<Placemark><name>${escapeXML(`${p.title} — ${l.label}`)}</name><description>${escapeXML(`${p.summary}\n적용 지역: ${p.region}\n좌표 기준: ${l.note}\n위치 판단 근거: ${p.locationEvidence}\n출처: ${p.sourceName}\n원문: ${p.sourceUrl}\n좌표 출처: ${l.geoSourceUrl}\n발표일: ${p.publishedAt}\n검토일: ${p.reviewedAt}`)}</description><Point><coordinates>${l.longitude},${l.latitude},0</coordinates></Point></Placemark>`).join("")}</Document></kml>`;
 }
 export function validateFeedback(input, policies) {
   if (!input || typeof input !== "object" || Array.isArray(input))
