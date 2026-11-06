@@ -1,4 +1,5 @@
 import regionIndex from "../public/app/regions/index.json" with { type: "json" };
+export { earthURL } from "../public/app/earth-link.js";
 
 const neighborhoodLabels = new Map(
   regionIndex.regions.map(({ code, label }) => [code, label]),
@@ -21,11 +22,6 @@ export function policyId(url) {
   for (const c of String(url))
     hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
   return `policy-${(hash >>> 0).toString(16)}`;
-}
-export function earthURL(policy) {
-  if (!Number.isFinite(policy.latitude) || !Number.isFinite(policy.longitude))
-    return null;
-  return `https://earth.google.com/web/search/${encodeURIComponent(`${policy.latitude},${policy.longitude}`)}`;
 }
 export function makeKML(policies) {
   const rows = policies.flatMap((p) =>

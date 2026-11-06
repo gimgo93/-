@@ -79,7 +79,7 @@ try {
     { timeout: 15000 },
   );
   assert.ok(
-    await page.$('.map-detail a[href^="https://earth.google.com/web/search/"]'),
+    await page.$('.map-detail a[href^="https://earth.google.com/web/@"]'),
   );
   await page.screenshot({
     path: path.join(output, "sepol-map-desktop.png"),

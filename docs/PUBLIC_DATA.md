@@ -25,7 +25,7 @@ sepol(search politics)은 실제 공식 발표를 읽기 쉽게 정리하고 적
 
 지도에는 11개 표시 위치가 있다. 정확한 시설 주소·사업 경계가 확인되지 않으면 행정구역 대표 위치로 표시한다. 다의적인 교량 검색 결과와 행사장 검색 결과를 정확한 시설로 채택하지 않았다. 시흥의 행사장과 정책 센터의 주소를 동일시하지 않았다. 지도점별 원문 근거·좌표 출처·정밀도 설명을 보존한다.
 
-Google Earth 웹은 사이트에 직접 iframe으로 넣지 않는다. 각 위치를 Earth 검색 URL로 연결하고 다중 위치는 `application/vnd.google-earth.kml+xml` KML로 내보낸다. KML에는 요약·원문·확인일·좌표 해석이 함께 들어간다.
+각 위치를 Google Earth의 좌표 중심 보기로 연결하고 다중 위치는 `application/vnd.google-earth.kml+xml` KML로 내보낸다. KML에는 요약·원문·확인일·좌표 해석이 함께 들어간다.
 
 공개 장소 좌표 캐시는 `data/public-location-cache.json`이다. 일회성 Nominatim 조회는 단일 실행·초당 1회 이하·결과 캐시 원칙을 지킨다. 시민 좌표나 사용자 주소를 Nominatim에 보내지 않는다. 정책: https://operations.osmfoundation.org/policies/nominatim/ . 애매한 결과는 수동으로 검토하고 채택하지 않는다.
 

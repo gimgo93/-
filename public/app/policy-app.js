@@ -1,5 +1,6 @@
 import { setupNeighborhood } from "./neighborhood-ui.js?v=4";
 import { coverageFor, locateNeighborhood } from "./neighborhood.js?v=4";
+import { earthURL as earth } from "./earth-link.js";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
   String(v ?? "").replace(
@@ -34,8 +35,6 @@ const categoryIcon = {
 const badge = (p) => `<span class="badge">${esc(p.category)}</span>`;
 const outLink = (url, label, cls = "") =>
   `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`;
-const earth = (l) =>
-  `https://earth.google.com/web/search/${encodeURIComponent(`${l.latitude},${l.longitude}`)}`;
 const views = ["discover", "map", "compare", "opinions", "sources", "write"];
 const params = new URLSearchParams(location.search);
 let stored = [];

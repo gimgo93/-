@@ -24,6 +24,10 @@ test("reviewed official policies retain provenance and have no invented opinion 
     assert.ok(p.summary && p.region && p.statusNote && p.locationEvidence);
     assert.equal(p.cost, undefined);
     assert.equal(p.severity, undefined);
+    assert.equal(
+      p.earthUrl?.split("/@")[1]?.split(",").slice(0, 2).join(",") ?? null,
+      p.locations.length ? `${p.locations[0].latitude},${p.locations[0].longitude}` : null,
+    );
     for (const l of p.locations) {
       assert.ok(l.latitude >= 33 && l.latitude <= 39);
       assert.ok(l.longitude >= 124 && l.longitude <= 132);
