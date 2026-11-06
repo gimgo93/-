@@ -91,7 +91,13 @@ try {
   );
   assert.equal((kml.match(/<Placemark>/g) || []).length, 11);
   results.push("Google Earth KML 11개 위치");
-  await page.click("nav [data-view=sources]");
+  assert.equal(await page.$("nav [data-view=sources]"), null);
+  assert.equal(await page.$(".map-list-note"), null);
+  await page.click(".site-footer [data-view=sources]");
+  assert.equal(
+    await page.$eval("#workspace h1", (e) => e.textContent),
+    "데이터와 지도 기준",
+  );
   await page.click("[data-action=refresh-feed]");
   await page.waitForFunction(
     () =>
@@ -107,6 +113,24 @@ try {
   );
   // One synthetic local opinion, removed by exact UUID after the test.
   await page.click("[data-view=write]");
+  assert.equal(await page.$eval(".feedback-fields", (e) => e.disabled), true);
+  await page.evaluate(() => {
+    navigator.geolocation.getCurrentPosition = (_ok, fail) => fail({ code: 1 });
+  });
+  await page.click("[data-action=locate-feedback]");
+  await page.waitForFunction(() =>
+    document.querySelector("#feedback-location-status").textContent.includes("위치 권한을 허용"),
+  );
+  assert.equal(await page.$eval(".feedback-fields", (e) => e.disabled), true);
+  await page.evaluate(() => {
+    navigator.geolocation.getCurrentPosition = (ok) =>
+      ok({ coords: { latitude: 36.11493, longitude: 128.082695, accuracy: 30 } });
+  });
+  await page.click("[data-action=locate-feedback]");
+  await page.waitForFunction(() => !document.querySelector(".feedback-fields").disabled);
+  const place = "경상북도 김천시 대곡동";
+  assert.equal(await page.$eval("#feedback-location-status", (e) => e.textContent), place);
+  assert.equal(await page.evaluate(() => localStorage.getItem("sepol.neighborhood.v1")), null);
   const id = await page.$eval(
     '#feedback-policy option[value]:not([value=""])',
     (e) => e.value,
@@ -118,14 +142,24 @@ try {
     "실제 정책과 연결되는 로컬 검증 의견입니다. <script>window.__xss=1</script> 내용은 텍스트로 표시되어야 합니다.",
   );
   await page.click("[name=consent]");
+  const posting = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/app/api/feedback"),
+  );
   await page.click("#feedback-form [type=submit]");
   await page.waitForSelector(".receipt");
   submittedId = (
     await page.$eval(".receipt code", (e) => e.textContent)
   ).replace("접수 번호: ", "");
   assert.match(submittedId, /^[a-f0-9-]{36}$/);
+  const posted = JSON.parse(await (await posting).fetchPostData());
+  assert.equal(posted.neighborhoodCode, "4715059500");
+  assert.deepEqual(Object.keys(posted).sort(), [
+    "consent", "content", "neighborhoodCode", "policyId", "requestId", "title",
+  ]);
+  assert.equal(await page.$eval(".receipt .feedback-place", (e) => e.textContent), place);
   await page.click(".receipt [data-view=opinions]");
   await page.waitForSelector(".feedback-item");
+  assert.equal(await page.$eval(".feedback-item .feedback-place", (e) => e.textContent), place);
   assert.equal(await page.evaluate(() => window.__xss), undefined);
   assert.match(
     await page.$eval(".feedback-item", (e) => e.textContent),

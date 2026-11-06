@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="공식 공개자료에서 확인한 정책을 쉽게 읽고, 적용 지역을 지도와 Google Earth에서 살펴보세요."
+      content="정책제안 &amp; 정책 비교를 위해"
     />
     <meta name="theme-color" content="#f5f8fc" />
-    <title>sepol (search politics) | 동네에서 찾는 정책</title>
+    <title>sepol (search politics)</title>
     <link rel="icon" href="/app/icon.svg" type="image/svg+xml" />
     <link
       rel="preload"
@@ -18,9 +18,9 @@
       crossorigin
     />
     <link rel="stylesheet" href="/app/vendor/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="/app/policy.css?v=3" />
+    <link rel="stylesheet" href="/app/policy.css?v=4" />
     <script src="/app/vendor/leaflet/leaflet.js" defer></script>
-    <script src="/app/policy-app.js?v=3" type="module"></script>
+    <script src="/app/policy-app.js?v=4" type="module"></script>
   </head>
   <body>
     <a class="skip-link" href="#workspace">본문으로 건너뛰기</a>
@@ -30,11 +30,9 @@
           ><span class="brand-mark"
             ><svg class="icon" aria-hidden="true">
               <use href="/app/icons.svg#map-pin"></use></svg></span
-          >sepol<span class="brand-description"
-            >search politics / 동네에서 찾는 정책</span
-          ></a
+          >sepol<span class="brand-description">search politics</span></a
         >
-        <button class="button primary compact" data-view="write">
+        <button class="button primary compact write-button" data-view="write">
           <svg class="icon" aria-hidden="true">
             <use href="/app/icons.svg#plus"></use></svg
           >의견 남기기
@@ -48,7 +46,6 @@
             >비교·검토 <span id="saved-count">0</span></a
           >
           <a href="?view=opinions" data-view="opinions">시민 의견</a>
-          <a href="?view=sources" data-view="sources">출처와 가공</a>
         </nav>
         <span class="review-stamp"
           >공식자료 검토 <time id="reviewed-date">확인 중</time></span
@@ -58,19 +55,19 @@
     <section id="neighborhood-bar" aria-label="우리 동네 설정"></section>
     <main id="workspace" tabindex="-1">
       <div class="loading-state" role="status">
-        <h1>정책의 근거를 불러오고 있어요.</h1>
-        <p>공식 발표와 적용 지역을 함께 확인합니다.</p>
+        <h1>정책의 근거를 불러오고 있어요</h1>
+        <p>공식 발표와 적용 지역을 함께 확인합니다</p>
       </div>
     </main>
     <noscript
       ><p class="notice">
-        정책 목록과 지도를 이용하려면 JavaScript를 켜 주세요.
+        정책 목록과 지도를 이용하려면 JavaScript를 켜 주세요
         <a href="/app/api/policies">공개 정책 JSON 보기</a>
       </p></noscript
     >
     <footer class="site-footer">
       <strong>sepol</strong
-      ><span>공식 발표를 읽기 쉽게 재구성한 독립 정책 탐색 서비스</span
+      ><span>정책제안 &amp; 정책 비교를 위해</span
       ><a href="?view=sources" data-view="sources">데이터와 지도 기준</a>
     </footer>
     <dialog id="policy-dialog" aria-labelledby="dialog-title">

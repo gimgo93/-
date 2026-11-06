@@ -62,7 +62,7 @@ const shards = {};
 export async function loadRegionIndex() {
   return (indexPromise ??= fetch("/app/regions/index.json")
     .then((r) => {
-      if (!r.ok) throw Error("동네 목록을 불러오지 못했습니다.");
+      if (!r.ok) throw Error("동네 목록을 불러오지 못했습니다");
       return r.json();
     })
     .catch((e) => {
@@ -83,11 +83,24 @@ export async function resolveNeighborhood(latitude, longitude) {
   for (const file of files) {
     if (!shards[file]) {
       const r = await fetch(`/app/regions/${file}`);
-      if (!r.ok) throw Error("행정동 경계를 불러오지 못했습니다.");
+      if (!r.ok) throw Error("행정동 경계를 불러오지 못했습니다");
       shards[file] = await r.json();
     }
   }
   return findRegion(index, shards, longitude, latitude);
+}
+export async function locateNeighborhood() {
+  if (!navigator.geolocation)
+    throw Error("이 브라우저는 위치 기능을 지원하지 않아요");
+  const position = await new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: false,
+      maximumAge: 60000,
+      timeout: 15000,
+    }),
+  );
+  const { latitude, longitude, accuracy } = position.coords;
+  return { region: await resolveNeighborhood(latitude, longitude), accuracy };
 }
 export function readSavedNeighborhood() {
   try {

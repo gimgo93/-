@@ -570,9 +570,6 @@ svg.icon {
 .map-detail .button-row {
   margin-top: 16px;
 }
-.map-list-note {
-  margin-top: 24px;
-}
 .leaflet-popup-content {
   font-family: var(--font-body);
   line-height: 1.6;
@@ -1343,3 +1340,76 @@ html,body{overflow-x:clip}body{background:var(--paper);font-family:var(--font-bo
 @media(max-width:700px){.header-inner{padding:16px 20px;gap:12px}.wordmark{font-size:32px;gap:8px}.brand-mark{width:20px}.header-inner>.button{font-size:13px;padding:8px 12px}.nav-inner nav{gap:20px}.nav-inner nav a{font-size:13px}.hero{grid-template-columns:minmax(0,1fr);gap:24px;padding-bottom:24px}.hero h1{font-size:28px}.hero p{font-size:15px}.hero-facts{grid-template-columns:repeat(3,minmax(0,1fr));border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 0;background:transparent;gap:12px}.hero-facts dt{font-size:12px}.hero-facts dd{font-size:24px}.hero-facts small{font-size:12px}.hero .button-row{gap:8px}.hero .button{font-size:13px;padding:12px 12px}.filters{padding:16px;gap:12px}.filters .search-label{min-width:0}.policy-card{grid-template-columns:24px minmax(0,1fr);gap:8px 12px;padding:24px 0}.policy-card::before{font-size:15px;grid-row:1/7}.card-top{grid-column:2}.policy-card h3{grid-column:2;font-size:18px}.policy-card h3 button{font-size:18px}.card-summary{grid-column:2;grid-row:3;font-size:14px}.card-region{grid-column:2;grid-row:4;font-size:13px}.card-meta{grid-column:2;grid-row:5;padding:0;font-size:12px}.coverage-label{grid-column:2;grid-row:5}.coverage-label+.card-meta{padding-top:24px}.card-actions{grid-column:2;grid-row:6;gap:16px}.scope-note{font-size:12px}.map-panel{width:100%}.map-caption{font-size:12px}.map-detail .button{font-size:12px;padding:8px 12px}.button-row{gap:8px}dialog{padding:24px 16px}.location-option p{font-size:14px}.detail-facts{grid-template-columns:80px minmax(0,1fr)}.detail-facts dd{min-width:0}.section-intro{font-size:15px}.page-top h1{font-size:28px}.page-top{gap:16px}}
 
 a.skip-link{color:var(--ink);background:var(--paper)}.map-caption{color:var(--muted)}.brand-description{white-space:nowrap}.wordmark{flex-shrink:0}.header-inner>.button{flex-shrink:0}nav a{flex-shrink:0}button:disabled,input:disabled,select:disabled{color:var(--muted)}.policy-card h3 button{padding:8px 0;min-height:44px}h1{font-size:36px} @media(max-width:700px){.brand-description{display:none}h1{font-size:28px}}
+.write-button,
+.feedback-form .button {
+  border-radius: 999px;
+}
+.feedback-form,
+.writing-note,
+.receipt {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+.feedback-form,
+.receipt {
+  background: var(--soft);
+}
+.writing-note {
+  background: var(--paper);
+  padding: 24px;
+}
+.feedback-fields {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.feedback-form input,
+.feedback-form select,
+.feedback-form textarea {
+  border-radius: 12px;
+}
+.feedback-location {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+}
+.feedback-location-heading,
+.feedback-place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feedback-location p {
+  margin: 8px 0;
+  font-size: .9rem;
+  color: var(--muted);
+}
+.feedback-location .button[hidden],
+#feedback-location-status:empty {
+  display: none;
+}
+.feedback-place {
+  width: fit-content;
+  padding: 5px 12px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: var(--tone-9);
+  color: var(--ink);
+  font-size: .875rem;
+  font-weight: 700;
+}
+.receipt .feedback-place {
+  margin: 0 auto 12px;
+}
+.feedback-item .feedback-place + small {
+  display: block;
+}
+.policy-promise {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+}

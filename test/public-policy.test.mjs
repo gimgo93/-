@@ -74,6 +74,12 @@ test("feedback requires genuine policy, public consent and bounded text", () => 
     requestId: crypto.randomUUID(),
   };
   assert.ok(validateFeedback(input, rows).value);
+  assert.equal(validateFeedback(input, rows).value.neighborhood, null);
+  assert.equal(
+    validateFeedback({ ...input, neighborhoodCode: "4715059500" }, rows).value.neighborhood,
+    "경상북도 김천시 대곡동",
+  );
+  assert.ok(validateFeedback({ ...input, neighborhoodCode: "unknown" }, rows).error);
   assert.ok(validateFeedback({ ...input, policyId: "fake" }, rows).error);
   assert.ok(validateFeedback({ ...input, consent: false }, rows).error);
 });

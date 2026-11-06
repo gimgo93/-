@@ -12,6 +12,16 @@ const json = (body, status = 200) =>
     status,
     headers: { ...securityHeaders, "Cache-Control": "no-store" },
   });
+const feedbackReceipt = (row) => ({
+  id: row.id,
+  policyTitle: row.policy_title,
+  neighborhood: row.neighborhood,
+});
+function existingFeedback(existing, row) {
+  if (["policy_id", "title", "content", "neighborhood"].every((k) => existing[k] === row[k]))
+    return json({ ...feedbackReceipt(existing), duplicate: true });
+  return json({ error: "접수 번호가 중복되었어요\n새 의견으로 제출해 주세요" }, 409);
+}
 async function api(request, env, url, ctx) {
   const catalog = getCatalog();
   if (url.pathname === "/app/api/policies" && request.method === "GET")
@@ -39,23 +49,23 @@ async function api(request, env, url, ctx) {
     return json(
       {
         error:
-          "기존 합성 시연 API는 종료했습니다. 실제 정책은 /app/api/policies, 시민 의견은 /app/api/feedback을 이용해 주세요.",
+          "기존 합성 시연 API는 종료했습니다 실제 정책은 /app/api/policies, 시민 의견은 /app/api/feedback을 이용해 주세요",
       },
       410,
     );
   if (url.pathname !== "/app/api/feedback")
-    return json({ error: "지원하지 않는 요청입니다." }, 404);
+    return json({ error: "지원하지 않는 요청입니다" }, 404);
   if (!env.APP_DB)
     return json(
       {
-        error: "의견 저장소에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        error: "의견 저장소에 연결하지 못했습니다 잠시 후 다시 시도해 주세요",
       },
       503,
     );
   if (request.method === "GET") {
     const data = await env.APP_DB.batch([
       env.APP_DB.prepare(
-        "SELECT id,policy_id,policy_title,region,title,content,created_at FROM civic_feedback_v2 ORDER BY created_at DESC,id DESC LIMIT 100",
+        "SELECT id,policy_id,policy_title,region,neighborhood,title,content,created_at FROM civic_feedback_v2 ORDER BY created_at DESC,id DESC LIMIT 100",
       ),
       env.APP_DB.prepare("SELECT COUNT(*) AS total FROM civic_feedback_v2"),
     ]);
@@ -67,43 +77,31 @@ async function api(request, env, url, ctx) {
     });
   }
   if (request.method !== "POST")
-    return json({ error: "지원하지 않는 요청입니다." }, 405);
+    return json({ error: "지원하지 않는 요청입니다" }, 405);
   const origin = request.headers.get("origin");
   if (origin && origin !== url.origin)
-    return json({ error: "같은 앱 화면에서 제출해 주세요." }, 403);
+    return json({ error: "같은 앱 화면에서 제출해 주세요" }, 403);
   if (!request.headers.get("content-type")?.includes("application/json"))
-    return json({ error: "JSON 형식이 필요합니다." }, 415);
+    return json({ error: "JSON 형식이 필요합니다" }, 415);
   if (Number(request.headers.get("content-length") || 0) > 16000)
-    return json({ error: "입력 내용이 너무 깁니다." }, 413);
+    return json({ error: "입력 내용이 너무 깁니다" }, 413);
   const raw = await request.text();
   if (raw.length > 8000)
-    return json({ error: "입력 내용이 너무 깁니다." }, 413);
+    return json({ error: "입력 내용이 너무 깁니다" }, 413);
   let input;
   try {
     input = JSON.parse(raw);
   } catch {
-    return json({ error: "입력 내용을 확인해 주세요." }, 400);
+    return json({ error: "입력 내용을 확인해 주세요" }, 400);
   }
   const validated = validateFeedback(input, catalog.policies);
   if (validated.error) return json(validated, 400);
   const row = validated.value;
-  const existing = await env.APP_DB.prepare(
-    "SELECT id,policy_id,title,content FROM civic_feedback_v2 WHERE id=?",
-  )
-    .bind(row.id)
-    .first();
-  if (existing) {
-    if (["policy_id", "title", "content"].every((k) => existing[k] === row[k]))
-      return json({
-        id: existing.id,
-        policyTitle: row.policy_title,
-        duplicate: true,
-      });
-    return json(
-      { error: "접수 번호가 중복되었습니다. 새 의견으로 제출해 주세요." },
-      409,
-    );
-  }
+  const findExisting = env.APP_DB.prepare(
+    "SELECT id,policy_id,policy_title,title,content,neighborhood FROM civic_feedback_v2 WHERE id=?",
+  ).bind(row.id);
+  const existing = await findExisting.first();
+  if (existing) return existingFeedback(existing, row);
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(
@@ -120,23 +118,29 @@ async function api(request, env, url, ctx) {
     .first();
   if (limit.hits > 20)
     return json(
-      { error: "오늘 접수 횟수를 초과했습니다. 내일 다시 참여해 주세요." },
+      { error: "오늘 접수 횟수를 초과했습니다 내일 다시 참여해 주세요" },
       429,
     );
   const result = await env.APP_DB.prepare(
-    "INSERT INTO civic_feedback_v2(id,policy_id,policy_title,region,title,content,created_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING",
+    "INSERT INTO civic_feedback_v2(id,policy_id,policy_title,region,neighborhood,title,content,created_at) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING",
   )
     .bind(
       row.id,
       row.policy_id,
       row.policy_title,
       row.region,
+      row.neighborhood,
       row.title,
       row.content,
       new Date().toISOString(),
     )
     .run();
   if (result.success === false) throw Error("Storage failed");
+  if (result.meta?.changes === 0) {
+    const concurrent = await findExisting.first();
+    if (!concurrent) throw Error("Storage failed");
+    return existingFeedback(concurrent, row);
+  }
   const cleanup = env.APP_DB.prepare(
     "DELETE FROM request_limits WHERE expires<?",
   )
@@ -144,10 +148,7 @@ async function api(request, env, url, ctx) {
     .run();
   if (ctx?.waitUntil) ctx.waitUntil(cleanup);
   else await cleanup;
-  return json(
-    { id: row.id, policyTitle: row.policy_title },
-    result.meta?.changes === 0 ? 200 : 201,
-  );
+  return json(feedbackReceipt(row), 201);
 }
 export default {
   async fetch(request, env = {}, ctx) {
@@ -160,7 +161,7 @@ export default {
       } catch (error) {
         console.error("Policy API:", error?.name || "Error");
         return json(
-          { error: "처리를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요." },
+          { error: "처리를 완료하지 못했습니다 잠시 후 다시 시도해 주세요" },
           503,
         );
       }
